@@ -390,7 +390,7 @@ const SemesterManagement = () => {
           />
         </div>
         <div className="bg-white p-4 rounded shadow">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col justify-between items-center mb-4 md:flex-row">
             <h2 className="text-xl font-semibold text-cyan-700">
               Semester List
             </h2>
@@ -430,7 +430,10 @@ const SemesterManagement = () => {
                 displayDetailsBtn={false}
                 itemDetails="subject id."
                 displaybtnlink="/pages/subjects/details/"
-                displayActions={session?.user?.role==='admin' || session?.user?.role==='head teacher'}
+                displayActions={
+                  session?.user?.role === "admin" ||
+                  session?.user?.role === "head teacher"
+                }
               />
             ) : (
               <div>
