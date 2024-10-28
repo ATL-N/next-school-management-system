@@ -25,7 +25,7 @@ const Addnewclass = ({ id, classData, staffData, onCancel }) => {
   const [isAuthorised, setIsAuthorised] = useState(false);
 
   useEffect(() => {
-    console.log("classData", classData, staffData);
+    // console.log("classData", classData, staffData);
     if (id && classData) {
       const initialFormData = {
         class_id: id,
@@ -42,13 +42,14 @@ const Addnewclass = ({ id, classData, staffData, onCancel }) => {
   }, [id, classData]);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
+    const authorizedRoles = ["admin"];
     const authorizedPermissions = ["add class", "update class"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
@@ -96,6 +97,7 @@ const Addnewclass = ({ id, classData, staffData, onCancel }) => {
       room_number: formData.room_number,
       capacity: formData.capacity,
       user_id: session?.user?.id
+
     };
 
    try {
@@ -133,6 +135,7 @@ const Addnewclass = ({ id, classData, staffData, onCancel }) => {
      if (!id) {
        setFormData(initialState);
      }
+     return
    } catch (error) {
     //  console.error(id ? "Error updating class:" : "Error adding class:", error);
      toast.update(toastId, {

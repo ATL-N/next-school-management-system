@@ -13,19 +13,7 @@ import {
   FaFileAlt,
 } from "react-icons/fa";
 
-const dummyClassData = {
-  id: "CS101",
-  name: "Introduction to Computer Science",
-  code: "CS101",
-  instructor: "Dr. Jane Smith",
-  enrolledStudents: 25,
-  maxCapacity: 30,
-  schedule: "Mon, Wed, Fri 10:00 AM - 11:30 AM",
-  duration: "16 weeks",
-  location: "Room 301, Science Building",
-  description:
-    "This course provides a comprehensive introduction to computer science, covering fundamental concepts such as algorithms, data structures, and programming paradigms.",
-};
+
 
 const ClassDetailsPage1 = ({ showBtns = true, classData, staffData }) => {
 

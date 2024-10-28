@@ -1,5 +1,5 @@
 // pages/dashboard/financial-management/components/record-expense.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaCalendarAlt,
   FaList,
@@ -8,8 +8,33 @@ import {
   FaPlus,
   FaTrash,
 } from "react-icons/fa";
+import { useSession } from "next-auth/react";
+
 
 const RecordExpense = ({ onClose }) => {
+    const { data: session, status } = useSession();
+
+    const [isAuthorised, setIsAuthorised] = useState(true);
+    const [activeSemester, setActiveSemester] = useState();
+
+
+      useEffect(() => {
+        const authorizedRoles = ["admin"];
+        const authorizedPermissions = ["add expense", "update expense"];
+
+        if (
+          session?.user?.permissions?.some((permission) =>
+            authorizedPermissions.includes(permission)
+          ) ||
+          authorizedRoles.includes(session?.user?.role)
+        ) {
+          setIsAuthorised(true);
+        } else {
+          setIsAuthorised(false);
+        }
+      }, [session, status]);
+
+
   const [expenseData, setExpenseData] = useState({
     date: "",
     category: "",

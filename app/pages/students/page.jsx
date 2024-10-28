@@ -70,19 +70,25 @@ const StudentManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
+    const authorizedRoles = ["admin"];
     const authorizedPermissions = ["view students"];
 
+    console.log("session?.user?.role", session?.user?.role);
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
+      ) ||
+      session?.user?.role === "teaching staff" ||
+      session?.user?.role === "admin" ||
+      session?.user?.roles?.some((role) =>
+        authorizedRoles.includes(role)
       )
     ) {
       setIsAuthorised(true);
     } else {
       setIsAuthorised(false);
     }
-  }, [session]);
+  }, [session, status]);
 
   //  if (isLoading) {
   //    return <Loadingpage />;
@@ -449,27 +455,18 @@ const StudentManagement = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        <Link
-          href="/pages/grading/reportcard"
-          className="bg-cyan-600 p-4 rounded shadow text-white hover:text-cyan-900 hover:shadow-md transition-shadow "
-        >
-          <h2 className="text-xl font-semibold mb-2  flex items-center ">
-            <FaClipboardList className="mr-2" /> Grade Reports
-          </h2>
-          <p>Access student grade reports.</p>
-        </Link>
-      </div>
-
       <div className="bg-white p-4 rounded shadow">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-cyan-700">Student List</h2>
-          <button
-            onClick={handleAddStudent}
-            className="p-2 bg-cyan-700 text-white rounded hover:bg-cyan-600 flex items-center"
-          >
-            <FaUserPlus className="mr-2" /> Add New Student
-          </button>
+          {(session?.user?.role === "admin" ||
+            session?.user?.role === "head teacher") && (
+            <button
+              onClick={handleAddStudent}
+              className="p-2 bg-cyan-700 text-white rounded hover:bg-cyan-600 flex items-center"
+            >
+              <FaUserPlus className="mr-2" /> Add New Student
+            </button>
+          )}
         </div>
         <div className="overflow-x-auto tableWrap">
           {!isLoading ? (
@@ -487,6 +484,19 @@ const StudentManagement = () => {
               displayEvaluationBtn={true}
               handleEvaluation={handleViewextendeddetails}
               evalTitle="View extended details for "
+              displayActions={
+                session?.user?.role === "admin" ||
+                session?.user?.role === "head teacher" ||
+                session?.user?.role === "teaching staff"
+              }
+              displayEditBtn={
+                session?.user?.role === "admin" ||
+                session?.user?.role === "head teacher"
+              }
+              displayDelBtn={
+                session?.user?.role === "admin" ||
+                session?.user?.role === "head teacher"
+              }
             />
           ) : (
             <Loadingpage />
@@ -525,7 +535,7 @@ const StudentManagement = () => {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={studentStats?.attendance?.trend}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="attendance_date" />
+                <XAxis dataKey="attendance_date" name="attendance date" />
                 <YAxis />
                 <Tooltip />
                 <Legend />
@@ -551,7 +561,11 @@ const StudentManagement = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="attendance_rate" fill="#8884d8" />
+                <Bar
+                  dataKey="attendance_rate"
+                  fill="#8884d8"
+                  name={"attendance rate"}
+                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -568,7 +582,11 @@ const StudentManagement = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="average_score" fill="#82ca9d" />
+                <Bar
+                  dataKey="average_score"
+                  name="average score"
+                  fill="#82ca9d"
+                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

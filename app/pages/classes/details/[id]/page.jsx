@@ -231,8 +231,8 @@ const ClassDetailsPage = ({ params }) => {
             value={overallData?.averagePerformance?.toFixed(2) || 0}
           />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
-          <Link
+        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          {/* <Link
             href={`/pages/attendance/details/${classId}`}
             className="bg-cyan-600 p-4 rounded shadow text-white hover:text-cyan-900 hover:shadow-md transition-shadow "
           >
@@ -240,7 +240,7 @@ const ClassDetailsPage = ({ params }) => {
               <FaClipboardList className="mr-2" /> Full Attendance Records
             </h2>
             <p>Access class attendance reports.</p>
-          </Link>
+          </Link> */}
 
           <div className="bg-white p-4 rounded shadow">
             <h2 className="text-xl font-semibold mb-4 text-cyan-700">

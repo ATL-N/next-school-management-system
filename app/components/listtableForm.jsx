@@ -23,6 +23,7 @@ const CustomTable = ({
   searchTerm = "",
   displayActions = true,
   displaySearchBar = true,
+  displayEditBtn = true,
   displayDetailsBtn = true,
   displayDelBtn = true,
   displayEvaluationBtn = false,
@@ -58,7 +59,7 @@ const CustomTable = ({
       </div>
       <div className="tableWrap height-45vh">
         {data?.length > 0 ? (
-          <table className={`overflow-y-scroll uppercase table-auto`}>
+          <table className={`overflow-y-scroll capitalize table-auto`}>
             <thead className="header-overlay ">
               <tr className=" px-6 py-3 text-xs font-medium text-white text-center uppercase tracking-wider">
                 {headerNames.map((header, index) => (
@@ -116,14 +117,15 @@ const CustomTable = ({
                       })}
                       {displayActions && (
                         <td className="px-6 py-4 whitespace-nowrap text-lg font-medium flex text-right">
-                          <button
-                            onClick={() => handleEdit(item.id)}
-                            className="mr-6 text-xl grid text-cyan-900 hover:text-cyan-500 hover:bg-white"
-                            title={`${editTitle} ${item.id}`}
-                          >
-                            {editIcon}
-                          </button>
-
+                          {displayEditBtn && (
+                            <button
+                              onClick={() => handleEdit(item.id)}
+                              className="mr-6 text-xl grid text-cyan-900 hover:text-cyan-500 hover:bg-white"
+                              title={`${editTitle} ${item.id}`}
+                            >
+                              {editIcon}
+                            </button>
+                          )}
                           {displayDetailsBtn && (
                             <button
                               onClick={() => handleDetails(item.id)}

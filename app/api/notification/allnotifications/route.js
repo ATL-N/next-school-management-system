@@ -17,12 +17,11 @@ export async function GET(req) {
           *
         FROM 
           notifications n
-
         WHERE 
-          (t.first_name ILIKE $1 OR t.last_name ILIKE $1 OR t.email ILIKE $1 OR t.role ILIKE $1 OR t.employee_id ILIKE $1) AND t.status='active'
+          (n.notification_title ILIKE $1 OR n.notification_type ILIKE $1 OR n.priority ILIKE $1) AND n.status='active'
         ORDER BY 
-          t.first_name, t.last_name
-        LIMIT 10000
+          n.notification_id DESC, n.notification_title, n.notification_type
+        LIMIT 1000
       `;
       queryParams = [sanitizedQuery];
     } else {
@@ -38,7 +37,7 @@ export async function GET(req) {
         ORDER BY 
          n.notification_id DESC
 
-        LIMIT 10000;
+        LIMIT 30;
 
       `;
     }

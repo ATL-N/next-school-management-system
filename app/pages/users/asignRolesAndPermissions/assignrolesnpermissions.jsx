@@ -28,6 +28,34 @@ const EditRolesAndPermissions = ({
     selectedPermissions: [],
   });
 
+    const [isAuthorised, setIsAuthorised] = useState(true);
+    const [activeSemester, setActiveSemester] = useState();
+
+    useEffect(() => {
+      const authorizedRoles = ["admin"];
+      const authorizedPermissions = ["assign permissions"];
+
+      if (
+        session?.user?.permissions?.some((permission) =>
+          authorizedPermissions.includes(permission)
+        ) ||
+        authorizedRoles.includes(session?.user?.role)
+      ) {
+        setIsAuthorised(true);
+      } else {
+        setIsAuthorised(false);
+      }
+
+      if (
+        status === "authenticated" &&
+        session?.user?.activeSemester?.semester_id
+      ) {
+        setActiveSemester(session?.user?.activeSemester?.semester_id);
+        // setUserId(session?.user?.id);
+      }
+    }, [session, status]);
+
+
   const handleRoleChange = async (role) => {
     setIsLoading(true)
     try {
@@ -143,15 +171,16 @@ const EditRolesAndPermissions = ({
     }
   };
 
-  if (session?.user?.role != "admin" || status === "unauthenticated") {
+  if (isLoading || status === "loading") {
+    return <Loadingpage />;
+  }
+
+  if (!isAuthorised) {
     return (
-      <div className="flex items-centformData.role_nameer">
-        you are not authorised to perform this action
+      <div className="flex items-center text-cyan-700">
+        You are not authorised to be on this page...!
       </div>
     );
-  }
-  if (isLoading) {
-    return <Loadingpage />;
   }
 
   return (

@@ -21,7 +21,8 @@ SELECT supplier_id
 FROM suppliers 
 WHERE LOWER(supplier_name) = LOWER($1) 
   AND LOWER(contact_name) = LOWER($2) 
-  AND contact_phone = $3;    `;
+  AND contact_phone = $3
+  AND status='active';   `;
 
     const checkResult = await db.query(checkQuery, [supplier_name, contact_name, contact_phone]);
 

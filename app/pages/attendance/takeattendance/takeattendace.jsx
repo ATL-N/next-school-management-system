@@ -44,13 +44,14 @@ const TakeAttendance = ({ id, attendanceData, class_id }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
+    const authorizedRoles = ["admin", "head teacher", 'teaching staff'];
     const authorizedPermissions = ["take attendance", "update attendance"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
@@ -256,6 +257,9 @@ const TakeAttendance = ({ id, attendanceData, class_id }) => {
       setDate(new Date().toISOString().slice(0, 10));
     }
   };
+    if (isLoading) {
+      return <Loadingpage />;
+    }
 
   if (!isAuthorised) {
     return (
@@ -265,9 +269,7 @@ const TakeAttendance = ({ id, attendanceData, class_id }) => {
     );
   }
 
-  if (isLoading) {
-    return <Loadingpage />;
-  }
+
 
   return (
     <>

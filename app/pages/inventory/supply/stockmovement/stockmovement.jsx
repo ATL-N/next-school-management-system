@@ -27,13 +27,14 @@ const StockMovement = ({ id, supplierData, onCancel }) => {
   const [isAuthorised, setIsAuthorised] = useState(false);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
-    const authorizedPermissions = ["add supplier", "update supplier", 'add student'];
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["move items"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {

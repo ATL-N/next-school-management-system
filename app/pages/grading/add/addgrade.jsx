@@ -56,13 +56,14 @@ const Addgrades = ({ id, classId }) => {
   }, []);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
+    const authorizedRoles = ["admin"];
     const authorizedPermissions = ["add grades", "update grades"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
@@ -270,7 +271,7 @@ const Addgrades = ({ id, classId }) => {
   };
 
   const calculateTotalGrade = (studentId) => {
-    if (!grades[studentId]) return "N/A";
+    if (!grades[studentId]) return "00";
     const classScore = parseFloat(grades[studentId][1] || 0);
     const examsScore = parseFloat(grades[studentId][2] || 0);
     return (classScore + examsScore).toFixed(2);
@@ -282,7 +283,7 @@ const Addgrades = ({ id, classId }) => {
     setSelectedSubject("");
     setSelectedSemester(activeSem);
   };
-  if (status === "loading") {
+  if (status === "loading" || isLoading) {
     return (
       <div className="text-cyan-700">
         <LoadingPage />
@@ -296,10 +297,6 @@ const Addgrades = ({ id, classId }) => {
         You are not authorised to be on this page...!
       </div>
     );
-  }
-
-  if (isLoading) {
-    return <LoadingPage />;
   }
 
   return (

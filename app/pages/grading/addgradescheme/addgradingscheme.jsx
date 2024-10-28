@@ -25,8 +25,9 @@ const Addeditgradescheme = ({ id, onCancel }) => {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [originalData, setOriginalData] = useState(initialState);
   const [isLoading, setIsLoading] = useState(false);
-  const [isAuthorised, setIsAuthorised] = useState(false);
   const [gradingSchemedata, setGradingSchemedata] = useState([]);
+const [isAuthorised, setIsAuthorised] = useState(true);
+const [activeSemester, setActiveSemester] = useState();
 
  useEffect(() => {
   //  console.log("id", id);
@@ -56,16 +57,29 @@ const Addeditgradescheme = ({ id, onCancel }) => {
     setIsLoading(false)
   }, [id, gradingSchemedata]);
 
-   useEffect(() => {
-     const authorizedRoles = ["admin", "head teacher"];
+ useEffect(() => {
+   const authorizedRoles = ["admin"];
+   const authorizedPermissions = ["add grading scheme"];
 
-     if (session?.user?.roles?.some((role) => authorizedRoles.includes(role))) {
-       setIsAuthorised(true);
-     } else {
-       setIsAuthorised(false);
-     }
+   if (
+     session?.user?.permissions?.some((permission) =>
+       authorizedPermissions.includes(permission)
+     ) ||
+     authorizedRoles.includes(session?.user?.role)
+   ) {
+     setIsAuthorised(true);
+   } else {
+     setIsAuthorised(false);
+   }
 
-   }, [session]);
+   if (
+     status === "authenticated" &&
+     session?.user?.activeSemester?.semester_id
+   ) {
+     setActiveSemester(session?.user?.activeSemester?.semester_id);
+     // setUserId(session?.user?.id);
+   }
+ }, [session, status]);
 
    const fetchGradingSchemeData = async (scheme_id) => {
     setIsLoading(true)

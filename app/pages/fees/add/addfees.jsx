@@ -41,19 +41,20 @@ const AddNewFee = ({ id, student_id, onCancel, studentsData }) => {
   const [showReceipt, setShowReceipt] = useState(false);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
-    const authorizedPermissions = ["add fees", "update fees"];
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["add fees"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
       setIsAuthorised(false);
     }
-  }, [session]);
+  }, [session, status]);
 
   useEffect(() => {
     console.log("studentsData", studentsData, session.user.student_id);
@@ -157,41 +158,6 @@ const AddNewFee = ({ id, student_id, onCancel, studentsData }) => {
       return;
     }
 
-    //  let photoURL = formData.photo;
-
-    //  if (imageUpload) {
-    //    toast.update(toastId, {
-    //      render: "Uploading image...",
-    //      type: "info",
-    //      isLoading: true,
-    //    });
-
-    //    const currentDate = new Date().toISOString();
-    //    const imageRef = ref(
-    //      storage,
-    //      `images/${imageUpload.name + currentDate}`
-    //    );
-    //    try {
-    //      const snapshot = await uploadBytes(imageRef, imageUpload);
-    //      photoURL = await getDownloadURL(snapshot.ref);
-
-    //      toast.update(toastId, {
-    //        render: "Image uploaded successfully",
-    //        type: "success",
-    //        isLoading: false,
-    //        autoClose: 2000,
-    //      });
-    //    } catch (error) {
-    //      toast.update(toastId, {
-    //        render: "Error uploading image: " + error.message,
-    //        type: "error",
-    //        isLoading: false,
-    //        autoClose: 5000,
-    //      });
-    //      return;
-    //    }
-    //  }
-
     const studentsData = {
       ...formData,
       new_balance: parseFloat(formData.new_balance),
@@ -229,11 +195,6 @@ const AddNewFee = ({ id, student_id, onCancel, studentsData }) => {
         return;
       }
 
-      // console.log(
-      //   id ? "Fees updated successfully:" : "Fees added successfully:",
-      //   result
-      // );
-
       toast.update(toastId, {
         render: result.message || "Operation completed successfully!",
         type: "success",
@@ -263,16 +224,16 @@ const AddNewFee = ({ id, student_id, onCancel, studentsData }) => {
     }
   };
 
+  if (isLoading) {
+    return <Loadingpage />;
+  }
+
   if (!isAuthorised) {
     return (
       <div className="flex items-center">
-        You are not authorised to be on this page
+        You are not authorised to be on this page...!
       </div>
     );
-  }
-
-  if (isLoading) {
-    return <Loadingpage />;
   }
 
   return (

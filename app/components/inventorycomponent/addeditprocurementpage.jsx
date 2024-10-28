@@ -229,7 +229,7 @@ const Addeditprocurementpage = ({
                     onClick={resetForm}
                   >
                     <FaUndo className="mr-2" />
-                    {isEditing ? "Reset Changes" : "Reset Form"}
+                    {isEditing ? "Undo Changes" : "Reset Form"}
                   </button>
                   <button
                     type="submit"

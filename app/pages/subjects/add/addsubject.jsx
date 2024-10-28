@@ -21,6 +21,33 @@ const AddnewSubject = ({ id, subjectdata, onCancel }) => {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [originalData, setOriginalData] = useState(initialState);
   const [isLoading, setIsLoading] = useState(false);
+const [isAuthorised, setIsAuthorised] = useState(true);
+const [activeSemester, setActiveSemester] = useState();
+
+useEffect(() => {
+  const authorizedRoles = ["admin"];
+  const authorizedPermissions = ["add subject"];
+
+  if (
+    session?.user?.permissions?.some((permission) =>
+      authorizedPermissions.includes(permission)
+    ) ||
+    authorizedRoles.includes(session?.user?.role)
+  ) {
+    setIsAuthorised(true);
+  } else {
+    setIsAuthorised(false);
+  }
+
+  if (
+    status === "authenticated" &&
+    session?.user?.activeSemester?.semester_id
+  ) {
+    setActiveSemester(session?.user?.activeSemester?.semester_id);
+    // setUserId(session?.user?.id);
+  }
+}, [session, status]);
+
 
   useEffect(() => {
     console.log("id", subjectdata);
@@ -137,13 +164,17 @@ const AddnewSubject = ({ id, subjectdata, onCancel }) => {
     }
   };
 
-  if (session?.user?.role != "admin"){
-    return <div className="flex items-center">you are not authorised to perform this action</div>
-  }
-
    if (isLoading) {
      return <Loadingpage />;
    }
+
+ if (!isAuthorised) {
+   return (
+     <div className="flex items-center text-cyan-700">
+       You are not authorised to be on this page...!
+     </div>
+   );
+ }
 
     return (
       <>

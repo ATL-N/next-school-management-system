@@ -72,13 +72,14 @@ const FinancialManagement = () => {
   }, [status, session]);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
-    const authorizedPermissions = ["delete event", "view staff"];
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["view finances"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
@@ -254,7 +255,7 @@ const FinancialManagement = () => {
   if (!isAuthorised) {
     return (
       <div className="flex items-center">
-        You are not authorised to be on this page
+        You are not authorised to be on this page...!
       </div>
     );
   }

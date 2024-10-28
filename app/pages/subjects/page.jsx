@@ -34,15 +34,16 @@ const SubjectManagement = () => {
 
   const [isAuthorised, setIsAuthorised] = useState(false);
   const [isDelSubAuthorised, setIsDelSubAuthorised] = useState(false);
+  const authorizedRoles = ["admin", "head teacher"];
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
     const authorizedPermissions = ["view subjects"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      session?.user?.role === "student"
     ) {
       setIsAuthorised(true);
     } else {
@@ -60,7 +61,7 @@ const SubjectManagement = () => {
     } else {
       setIsDelSubAuthorised(false);
     }
-  }, [session]);
+  }, [session, status]);
 
   const headerNames = ["id", "Subject Name"];
 
@@ -130,6 +131,7 @@ const SubjectManagement = () => {
             subjectdata={subjectdata}
             onCancel={() => {
               setShowModal(false);
+              fetchSubjects();
             }}
           />
         </div>
@@ -236,7 +238,7 @@ const SubjectManagement = () => {
   if (!isAuthorised) {
     return (
       <div className="flex items-center text-cyan-700">
-        You are not authorised to be on this page
+        You are not authorised to be on this page...!
       </div>
     );
   }
@@ -247,40 +249,26 @@ const SubjectManagement = () => {
         <h1 className="text-3xl font-bold mb-6 text-cyan-700">
           Subject Management
         </h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4 mb-6">
           <StatCard
             icon={<FaBook />}
             title="Total Subjects"
             value={subjects.length}
           />
-          <StatCard
-            icon={<FaGraduationCap />}
-            title="Grade Levels"
-            value={new Set(subjects.map((s) => s.grade_level)).size}
-          />
-          {/* <StatCard
-            icon={<FaChalkboardTeacher />}
-            title="Departments"
-            value={new Set(subjects.map((s) => s.department)).size}
-          /> */}
-
-          {/* <StatCard
-            icon={<FaBook />}
-            title="Active Subjects"
-            value={subjects?.filter((s) => s.is_active).length}
-          /> */}
         </div>
         <div className="bg-white p-4 rounded shadow mb-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-cyan-700">
               Subject List
             </h2>
-            <button
-              onClick={handleAddSubject}
-              className="p-2 bg-cyan-700 text-white rounded hover:bg-cyan-600 flex items-center"
-            >
-              <FaPlus className="mr-2" /> Add New Subject
-            </button>
+            {authorizedRoles.includes(session?.user?.role) && (
+              <button
+                onClick={handleAddSubject}
+                className="p-2 bg-cyan-700 text-white rounded hover:bg-cyan-600 flex items-center"
+              >
+                <FaPlus className="mr-2" /> Add New Subject
+              </button>
+            )}
           </div>
           <div className="overflow-x-auto tableWrap">
             {subjects.length > 0 ? (
@@ -295,6 +283,7 @@ const SubjectManagement = () => {
                 displayDetailsBtn={false}
                 itemDetails="subject id."
                 displaybtnlink="/pages/subjects/details/"
+                displayActions={authorizedRoles.includes(session?.user?.role)}
               />
             ) : (
               <div>
@@ -303,21 +292,6 @@ const SubjectManagement = () => {
             )}
           </div>
         </div>
-        {/* <div className="bg-white p-4 rounded shadow mb-6 text-cyan-500">
-          <h2 className="text-xl font-semibold mb-4 text-cyan-700">
-            Subjects by Department
-          </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={subjectStats}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="department" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="subjects" fill="#8884d8" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div> */}
       </div>
       {showModal && (
         <Modal onClose={() => setShowModal(false)}>{modalContent}</Modal>

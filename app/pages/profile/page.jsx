@@ -1,5 +1,5 @@
 "use client";
-
+//  /pages/profile
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -19,10 +19,11 @@ const Maindashboard = () => {
   const [isAuthorised, setIsAuthorised] = useState(false);
   const [studentData, setStudentData] = useState(null);
   const [staffData, setStaffData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(true);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher", "student", "Student"];
+    const authorizedRoles = ["admin", "head teacher", "student", "Student", 'teaching staff'];
     const authorizedPermissions = ["view students"];
 
     if (authorizedRoles.includes(session?.user?.role)) {
@@ -90,6 +91,9 @@ const Maindashboard = () => {
         <LoadingPage />
       </div>
     );
+  }
+  if(!isAuthorised){
+    return <div>You are not authorised to be on this page. Contact the administrator for more details</div>
   }
 
   return (

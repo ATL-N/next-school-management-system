@@ -40,13 +40,14 @@ const ReceiveMovedItem = ({ id, itemData, onCancel }) => {
   const [isAuthorised, setIsAuthorised] = useState(false);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
-    const authorizedPermissions = ["move items", "add student"];
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["move items"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
@@ -84,8 +85,6 @@ const ReceiveMovedItem = ({ id, itemData, onCancel }) => {
     date.setFullYear(date.getFullYear() - 20);
     return date.toISOString().split("T")[0];
   };
-
-
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -165,9 +164,7 @@ const ReceiveMovedItem = ({ id, itemData, onCancel }) => {
     }
   };
 
-  const title = id
-    ? `Edit Details`
-    : "Add New semester";
+  const title = id ? `Edit Details` : "Add New semester";
 
   if (isLoading) {
     return <Loadingpage />;

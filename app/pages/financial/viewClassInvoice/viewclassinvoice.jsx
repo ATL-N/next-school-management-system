@@ -17,13 +17,14 @@ const ViewInvoice = ({ classData, semesterData }) => {
   const [invoiceData, setInvoiceData] = useState(null);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher", "teacher", "accountant"];
-    const authorizedPermissions = ["view invoice"];
+    const authorizedRoles = ["admin", "head teacher"];
+    const authorizedPermissions = ["view bills"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
@@ -75,17 +76,19 @@ const ViewInvoice = ({ classData, semesterData }) => {
     printInvoice(invoiceData);
   };
 
+if (isLoading) {
+  return <Loadingpage />;
+}
+
   if (!isAuthorised) {
     return (
       <div className="flex items-center justify-center h-full">
-        You are not authorised to view this page
+        You are not authorised to view this page...!
       </div>
     );
   }
 
-  if (isLoading) {
-    return <Loadingpage />;
-  }
+  
 
   return (
     <div className="space-y-6">

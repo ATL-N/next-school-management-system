@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import db from "../../../../../lib/db";
 
-
-// /api/grading/analyticsforclassnsemester/[class_id]/[semester_id]/route.js
-
 export async function GET(req, { params }) {
   try {
     const { class_id, semester_id } = params;
@@ -29,15 +26,16 @@ export async function GET(req, { params }) {
     }
     const classDetails = classResult.rows[0];
 
-    // Fetch overall grade statistics
+    // Overall stats query using student_grades class_id
     const overallStatsQuery = `
       SELECT 
         AVG(total_score) as class_average,
         MAX(total_score) as highest_grade,
         MIN(total_score) as lowest_grade
       FROM student_grades sg
-      JOIN students s ON sg.student_id = s.student_id
-      WHERE sg.semester_id = $1 AND s.class_id = $2 AND sg.status = 'active' AND s.status = 'active'
+      WHERE sg.semester_id = $1 
+        AND sg.class_id = $2 
+        AND sg.status = 'active'
     `;
     const overallStatsResult = await db.query(overallStatsQuery, [
       semester_id,
@@ -45,7 +43,7 @@ export async function GET(req, { params }) {
     ]);
     const overallStats = overallStatsResult.rows[0];
 
-    // Fetch grade distribution with percentage
+    // Grade distribution query
     const gradeDistributionQuery = `
       WITH grade_counts AS (
         SELECT 
@@ -53,8 +51,9 @@ export async function GET(req, { params }) {
           COUNT(*) as count
         FROM student_grades sg
         JOIN grading_scheme gs ON sg.gradescheme_id = gs.gradescheme_id
-        JOIN students s ON sg.student_id = s.student_id
-        WHERE sg.semester_id = $1 AND s.class_id = $2 AND sg.status = 'active'
+        WHERE sg.semester_id = $1 
+          AND sg.class_id = $2 
+          AND sg.status = 'active'
         GROUP BY gs.grade_name
       ),
       total_students AS (
@@ -77,15 +76,17 @@ export async function GET(req, { params }) {
       count: parseInt(row.count),
       percentage: parseFloat(row.percentage),
     }));
-    // Fetch subject averages
+
+    // Subject averages query
     const subjectAveragesQuery = `
       SELECT 
         s.subject_name,
         AVG(sg.total_score) as average
       FROM student_grades sg
       JOIN subjects s ON sg.subject_id = s.subject_id
-      JOIN students st ON sg.student_id = st.student_id
-      WHERE sg.semester_id = $1 AND st.class_id = $2 AND sg.status = 'active'
+      WHERE sg.semester_id = $1 
+        AND sg.class_id = $2 
+        AND sg.status = 'active'
       GROUP BY s.subject_name
     `;
     const subjectAveragesResult = await db.query(subjectAveragesQuery, [
@@ -99,14 +100,15 @@ export async function GET(req, { params }) {
       ])
     );
 
-    // Fetch student performance over time
+    // Performance over time query
     const performanceOverTimeQuery = `
       SELECT 
         TO_CHAR(DATE_TRUNC('month', sg.created_at), 'Mon') as month,
         AVG(sg.total_score) as average_grade
       FROM student_grades sg
-      JOIN students s ON sg.student_id = s.student_id
-      WHERE sg.semester_id = $1 AND s.class_id = $2 AND sg.status = 'active'
+      WHERE sg.semester_id = $1 
+        AND sg.class_id = $2 
+        AND sg.status = 'active'
       GROUP BY DATE_TRUNC('month', sg.created_at)
       ORDER BY DATE_TRUNC('month', sg.created_at)
     `;
@@ -121,7 +123,7 @@ export async function GET(req, { params }) {
       })
     );
 
-    // Fetch top performers
+    // Top performers query
     const topPerformersQuery = `
       SELECT 
         s.student_id as id,
@@ -129,7 +131,9 @@ export async function GET(req, { params }) {
         AVG(sg.total_score) as average_grade
       FROM student_grades sg
       JOIN students s ON sg.student_id = s.student_id
-      WHERE sg.semester_id = $1 AND s.class_id = $2 AND sg.status = 'active'
+      WHERE sg.semester_id = $1 
+        AND sg.class_id = $2 
+        AND sg.status = 'active'
       GROUP BY s.student_id, s.first_name, s.last_name
       ORDER BY AVG(sg.total_score) DESC
       LIMIT 3
@@ -144,7 +148,7 @@ export async function GET(req, { params }) {
       averageGrade: parseFloat(row.average_grade),
     }));
 
-    // Fetch low performers
+    // Low performers query
     const lowPerformersQuery = `
       SELECT 
         s.student_id as id,
@@ -152,7 +156,9 @@ export async function GET(req, { params }) {
         AVG(sg.total_score) as average_grade
       FROM student_grades sg
       JOIN students s ON sg.student_id = s.student_id
-      WHERE sg.semester_id = $1 AND s.class_id = $2 AND sg.status = 'active'
+      WHERE sg.semester_id = $1 
+        AND sg.class_id = $2 
+        AND sg.status = 'active'
       GROUP BY s.student_id, s.first_name, s.last_name
       ORDER BY AVG(sg.total_score) ASC
       LIMIT 3
@@ -167,7 +173,7 @@ export async function GET(req, { params }) {
       averageGrade: parseFloat(row.average_grade),
     }));
 
-    // Fetch subject performance
+    // Subject performance query
     const subjectPerformanceQuery = `
       SELECT 
         s.subject_name as subject,
@@ -176,8 +182,9 @@ export async function GET(req, { params }) {
         MIN(sg.total_score) as low_student_score
       FROM student_grades sg
       JOIN subjects s ON sg.subject_id = s.subject_id
-      JOIN students st ON sg.student_id = st.student_id
-      WHERE sg.semester_id = $1 AND st.class_id = $2 AND sg.status = 'active'
+      WHERE sg.semester_id = $1 
+        AND sg.class_id = $2 
+        AND sg.status = 'active'
       GROUP BY s.subject_name
     `;
     const subjectPerformanceResult = await db.query(subjectPerformanceQuery, [

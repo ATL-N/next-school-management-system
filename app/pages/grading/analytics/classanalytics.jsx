@@ -26,69 +26,6 @@ import LoadingPage from "../../../components/generalLoadingpage";
 import CustomTable from "../../../components/listtableForm";
 
 
-// Extended dummy data
-// const dummyAnalytics = {
-//   classAverage: 85,
-//   highestGrade: 98,
-//   lowestGrade: 65,
-//   gradeDistribution: [
-//     { grade: "A", count: 5, percentage:25 },
-//     { grade: "B", count: 8, percentage:40 },
-//     { grade: "C", count: 4, percentage:20 },
-//     { grade: "D", count: 2, percentage:10 },
-//     { grade: "F", count: 1, percentage:5 },
-//   ],
-//   subjectAverages: {
-//     Math: 82,
-//     Science: 88,
-//     Literature: 79,
-//     History: 85,
-//   },
-//   studentPerformanceOverTime: [
-//     { month: "Jan", averageGrade: 78 },
-//     { month: "Feb", averageGrade: 80 },
-//     { month: "Mar", averageGrade: 82 },
-//     { month: "Apr", averageGrade: 85 },
-//     { month: "May", averageGrade: 87 },
-//   ],
-//   topPerformers: [
-//     { id: 1, name: "Alice Johnson", averageGrade: 95 },
-//     { id: 2, name: "Bob Smith", averageGrade: 92 },
-//     { id: 3, name: "Charlie Brown", averageGrade: 90 },
-//   ],
-//   lowPerformers: [
-//     { id: 4, name: "David Lee", averageGrade: 68 },
-//     { id: 5, name: "Eva Martinez", averageGrade: 70 },
-//     { id: 6, name: "Frank Wilson", averageGrade: 72 },
-//   ],
-//   subjectPerformance: [
-//     {
-//       subject: "Math",
-//       classAverage: 82,
-//       topStudentScore: 98,
-//       lowStudentScore: 65,
-//     },
-//     {
-//       subject: "Science",
-//       classAverage: 88,
-//       topStudentScore: 97,
-//       lowStudentScore: 70,
-//     },
-//     {
-//       subject: "Literature",
-//       classAverage: 79,
-//       topStudentScore: 95,
-//       lowStudentScore: 62,
-//     },
-//     {
-//       subject: "History",
-//       classAverage: 85,
-//       topStudentScore: 96,
-//       lowStudentScore: 68,
-//     },
-//   ],
-// };
-
 const ClassGradeAnalyticsPage = ({ class_id=3, onClose }) => {
   const { data: session, status } = useSession();
 
@@ -99,6 +36,8 @@ const ClassGradeAnalyticsPage = ({ class_id=3, onClose }) => {
   const [error, setError] = useState(null);
   const [activeSem, setActiveSem] = useState(null);
   const [isDeleteAuthorised, setIsDeleteAuthorised] = useState(false);
+const [isAuthorised, setIsAuthorised] = useState(true);
+const [activeSemester, setActiveSemester] = useState();
 
 useEffect(() => {
   if (
@@ -115,13 +54,14 @@ useEffect(() => {
 }, [status, session]);
 
 useEffect(() => {
-  const authorizedRoles = ["admin", "head teacher"];
-  const authorizedPermissions = ["delete grading scheme", "add student"];
+  const authorizedRoles = ["admin"];
+  const authorizedPermissions = ["view class grade analytics"];
 
   if (
     session?.user?.permissions?.some((permission) =>
       authorizedPermissions.includes(permission)
-    )
+    ) ||
+    authorizedRoles.includes(session?.user?.role)
   ) {
     setIsDeleteAuthorised(true);
   } else {
@@ -165,6 +105,14 @@ if (isLoading) {
   return <LoadingPage />;
 }
 
+if (!isDeleteAuthorised) {
+  return (
+    <div className="flex items-center text-cyan-700">
+      You are not authorised to be on this page...!
+    </div>
+  );
+}
+
 if (error) {
   return (
     <div>error</div>
@@ -205,7 +153,7 @@ if (!analytics) {
               Class Average
             </h3>
             <p className="text-3xl font-bold text-cyan-600">
-              {analytics?.classAverage}%
+              {analytics?.classAverage?.toFixed(2)}%
             </p>
           </div>
           <div className="space-y-2 bg-gray-100 rounded-md p-1">

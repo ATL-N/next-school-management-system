@@ -45,10 +45,10 @@ const Modal = ({ children, onClose }) => {
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 h-full"
       style={{ margin: 0 }}
     >
-      <div className="bg-white rounded-lg p-6 w-full max-w-[80vw] max-h-[85vh] relative">
+      <div className="bg-white rounded-lg p-2 w-full max-w-[80vw] max-h-[85vh] relative">
         {/* Fixed button outside of the scrollable content */}
         <button
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 z-50"
+          className="absolute top-1 right-1 text-gray-500 hover:text-gray-700 z-50"
           onClick={onClose}
         >
           <FaTimes />

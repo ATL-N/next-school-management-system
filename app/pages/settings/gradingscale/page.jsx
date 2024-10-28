@@ -268,12 +268,15 @@ const GradingScaleSettings = () => {
           <h2 className="text-xl font-semibold mb-4 text-cyan-700">
             Current Grading Scale
           </h2>
-          <button
-            onClick={handleAddGradingScheme}
-            className="w-full sm:w-auto px-4 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800 transition duration-300 ease-in-out flex items-center justify-center"
-          >
-            <FaPlus className="mr-2" /> Add Grading Scheme
-          </button>
+          {(session?.user?.role === "admin" ||
+            session?.user?.role === "head teacher") && (
+            <button
+              onClick={handleAddGradingScheme}
+              className="w-full sm:w-auto px-4 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800 transition duration-300 ease-in-out flex items-center justify-center"
+            >
+              <FaPlus className="mr-2" /> Add Grading Scheme
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
@@ -286,8 +289,10 @@ const GradingScaleSettings = () => {
               handleDelete={handleDeleteScheme}
               handleEdit={handleGradeEdit}
               searchTerm={""}
-              // handleSearch={fetchRecentPayments}
-              displayActions={isDeleteAuthorised}
+              displayActions={
+                session?.user?.role === "admin" ||
+                session?.user?.role === "head teacher"
+              }
               displayEvaluationBtn={false}
               displaySearchBar={false}
               displayDetailsBtn={false}

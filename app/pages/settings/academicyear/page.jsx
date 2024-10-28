@@ -59,7 +59,7 @@ const AcademicYearSettings = () => {
   return (
     <div className="pb-16 text-cyan-600">
       <h1 className="text-3xl font-bold mb-6 text-cyan-700">
-        Academic Year Settings
+        Academic Year Settings25
       </h1>
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow">
         <h2 className="text-xl font-semibold mb-4 text-cyan-700">

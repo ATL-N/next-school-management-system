@@ -39,6 +39,7 @@ const InventoryManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isAuthorised, setIsAuthorised] = useState(true);
+  const [isDelAuthorised, setIsDelAuthorised] = useState(true);
   const [searchSupplierQuery, setSearchSupplierQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [damagedQuery, setDamagedQuery] = useState("");
@@ -71,14 +72,38 @@ const InventoryManagement = () => {
   }
 
   useEffect(() => {
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["view supply items"];
+    const authorizedPermissions2 = ["delete supply items"];
+
+    if (
+      session?.user?.permissions?.some((permission) =>
+        authorizedPermissions.includes(permission)
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
+    ) {
+      setIsAuthorised(true);
+    } else {
+      setIsAuthorised(false);
+    }
+
     if (session?.user?.roles?.includes("admin")) {
       setIsAuthorised(true);
     } else {
       setIsAuthorised(false);
     }
 
-    // console.log("session roles", session?.user?.roles[0]);
-  }, [session]);
+    if (
+      session?.user?.permissions?.some((permission) =>
+        authorizedPermissions2.includes(permission)
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
+    ) {
+      setIsDelAuthorised(true);
+    } else {
+      setIsDelAuthorised(false);
+    }
+  }, [session, status]);
 
   // Fetch inventory items
   useEffect(() => {
@@ -138,7 +163,6 @@ const InventoryManagement = () => {
         url += `?query=${encodeURIComponent(searchQuery1)}`;
       }
       const data = await fetchData(url, "", false);
-      console.log("data?.length", data?.length);
       setLowStockItems(data);
     } catch (err) {
       setError(err.message);
@@ -217,7 +241,6 @@ const InventoryManagement = () => {
       if (!response.ok) throw new Error("Failed to fetch inventory items");
       const data = await response.json();
       setInventoryHistory(data);
-      console.log("procurements", data);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -289,7 +312,6 @@ const InventoryManagement = () => {
       const itemdata = inventoryItems.filter(
         (item) => item.item_id === item_id
       );
-      console.log("itemdata", itemdata);
 
       setModalContent(
         <div>
@@ -315,12 +337,43 @@ const InventoryManagement = () => {
     }
   };
 
+  const handleSupplyItem = async (item_id) => {
+    try {
+      const itemdata = suppliersData.filter(
+        (item) => item.supplier_id === item_id
+      );
+
+      setModalContent(
+        <div>
+          {/* {!isLoading ? ( */}
+          <Addeditsupplier
+            id={item_id}
+            supplierData={itemdata[0]}
+            onCancel={() => {
+              setShowModal(false);
+              fetchSuppliers();
+            }}
+          />
+          {/* ) : (
+            <Loadingpage />
+          )} */}
+        </div>
+      );
+    } catch (err) {
+      console.log("Error fetching teacher data:", err);
+    } finally {
+      setShowModal(true);
+      setIsLoading(false);
+    }
+  };
+
   const handleAddSupplier = () => {
     setModalContent(
       <Addeditsupplier
         onCancel={() => setShowModal(false)}
         onSave={() => {
           fetchAllItems();
+          fetchSuppliers();
           setShowModal(false);
         }}
       />
@@ -508,7 +561,7 @@ const InventoryManagement = () => {
   if (!isAuthorised) {
     return (
       <div className="flex items-center">
-        You are not authorised to be on this page
+        You are not authorised to be on this page...!
       </div>
     );
   }
@@ -587,6 +640,7 @@ const InventoryManagement = () => {
             searchPlaceholder="Search with item name or category"
             handleDelete={handleDeleteItem}
             handleEdit={handleEditItem}
+            displayDelBtn={isDelAuthorised}
           />
         </div>
       </div>
@@ -616,6 +670,7 @@ const InventoryManagement = () => {
             searchPlaceholder="Search with item name or category"
             handleDelete={handleDeleteItem}
             handleEdit={handleEditItem}
+            displayDelBtn={isDelAuthorised}
           />
         </div>
       </div>
@@ -646,11 +701,12 @@ const InventoryManagement = () => {
             handleSearch={handleLowStockItemsSearch}
             searchPlaceholder="Search with item name or category"
             handleDelete={handleDeleteItem}
+            displayDelBtn={isDelAuthorised}
           />
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded shadow mb-6">
+      {/* <div className="bg-white p-4 rounded shadow mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-cyan-700">
             Items Not Procured At all
@@ -677,7 +733,7 @@ const InventoryManagement = () => {
             searchPlaceholder="Search with item name or category"
           />
         </div>
-      </div>
+      </div> */}
 
       <div className="bg-white p-4 rounded shadow mb-6">
         <div className="flex justify-between items-center mb-4">
@@ -708,10 +764,12 @@ const InventoryManagement = () => {
               ]}
               displayDetailsBtn={false}
               displaySearchBar={true}
+              handleEdit={handleSupplyItem}
               searchTerm={searchSupplierQuery}
               handleSearch={handleSearchSupplier}
               searchPlaceholder="Search with supplier name or contact name or email or comment or address"
               handleDelete={handleDeleteSupplier}
+              displayDelBtn={isDelAuthorised}
             />
           ) : (
             <Loadingpage />

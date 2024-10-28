@@ -61,7 +61,8 @@ const TeacherManagement = () => {
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
@@ -367,12 +368,15 @@ const TeacherManagement = () => {
               Teacher List
             </h2>
             <div className="flex">
-              <button
-                onClick={handleAddTeacher}
-                className="p-2 bg-cyan-700 text-white rounded hover:bg-cyan-600 flex items-center mr-2"
-              >
-                <FaPlus className="mr-2" /> Add New Teacher
-              </button>
+              {(session?.user?.role === "admin" ||
+                session?.user?.role === "head teacher") && (
+                <button
+                  onClick={handleAddTeacher}
+                  className="p-2 bg-cyan-700 text-white rounded hover:bg-cyan-600 flex items-center mr-2"
+                >
+                  <FaPlus className="mr-2" /> Add New Teacher
+                </button>
+              )}
             </div>
           </div>
 
@@ -392,6 +396,10 @@ const TeacherManagement = () => {
                 displayEvaluationBtn={true}
                 searchTerm={searchQuery}
                 searchPlaceholder="type here to search by name, email, role or employee id  "
+                displayActions={
+                  session?.user?.role === "admin" ||
+                  session?.user?.role === "head teacher"
+                }
               />
             ) : (
               <Loadingpage />

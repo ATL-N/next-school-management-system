@@ -15,19 +15,20 @@ const ViewUserHealthRecord = ({ usersData, onCancel }) => {
   const [healthRecordData, setHealthRecordData] = useState(null);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher", "teacher", "accountant"];
+    const authorizedRoles = ["admin"];
     const authorizedPermissions = ["view health record"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
       setIsAuthorised(false);
     }
-  }, [session]);
+  }, [session, status]);
 
   const handleUserChange = (e) => {
     const user_id = e.target.value;
@@ -56,16 +57,16 @@ const ViewUserHealthRecord = ({ usersData, onCancel }) => {
     }
   }, [user_id]);
 
+   if (isLoading || status==='loading') {
+     return <Loadingpage />;
+   }
+
   if (!isAuthorised) {
     return (
       <div className="flex items-center justify-center h-full">
-        You are not authorised to view this page
+        You are not authorised to view this page...!
       </div>
     );
-  }
-
-  if (isLoading) {
-    return <Loadingpage />;
   }
 
   return (

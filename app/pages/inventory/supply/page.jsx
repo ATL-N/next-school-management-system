@@ -23,6 +23,7 @@ import Addeditprocurement from "../stock/addeditprocurement/addprocurement";
 import ItemMovement from "./itemmovement/itemmovement";
 import ClassSupplyManagement from "./itemsupplypage/classsupplypage";
 import ReceiveMovedItem from "./receivemoveditem/receivemoveditem";
+import AddeditClassitems from '../items/addEditClassItem/addclassitem'
 
 const ItemManagement = () => {
   const { data: session, status } = useSession();
@@ -100,7 +101,7 @@ const ItemManagement = () => {
 
   useEffect(() => {
     const authorizedRoles = ["admin", "head teacher"];
-    const authorizedPermissions = ["delete item", "view stock items"];
+    const authorizedPermissions = ["view supply items"];
 
     if (
       session?.user?.permissions?.some((permission) =>
@@ -237,23 +238,22 @@ const ItemManagement = () => {
     }
   };
 
-  const handleSupplyClassItems = (readonly = false) => {
+  const handleSupplyClassItems = () => {
     setModalContent(
       <ClassSupplyManagement
         onCancel={() => setShowModal(false)}
         itemsData={tableItems}
-        isReadOnly={readonly}
+        isReadOnly={false}
       />
     );
     setShowModal(true);
   };
 
-  const handleViewSupplyClassItems = (readonly = true) => {
+  const handleViewSupplyClassItems = () => {
     setModalContent(
-      <ClassSupplyManagement
+      <AddeditClassitems
         onCancel={() => setShowModal(false)}
-        itemsData={tableItems}
-        isReadOnly={readonly}
+        isreadonly={true}
       />
     );
     setShowModal(true);

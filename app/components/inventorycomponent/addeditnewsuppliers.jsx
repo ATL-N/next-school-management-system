@@ -14,7 +14,7 @@ const AddEditSupplierpage = ({
 
  
   const title = id
-    ? `Edit ${formData?.supplier_name} Details`
+    ? `Edit Supplier Details`
     : "Add New supplier";
 
   return (
@@ -92,6 +92,7 @@ const AddEditSupplierpage = ({
               placeholder="Describe the supplier for easy recordnition"
               onChange={handleChange}
               value={formData.details}
+              isRequired={false}
             />
           </div>
         </section>

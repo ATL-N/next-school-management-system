@@ -24,22 +24,21 @@ const AddeditClassitemspage = ({
   addInvoiceItem,
   removeInvoiceItem,
   resetForm,
-  onCancel
+  onCancel,
+  isreadonly = false,
 }) => {
   // Calculate total amount
   const totalAmount = useMemo(() => {
-    return inventoryItems.reduce(
+    return inventoryItems?.reduce(
       (sum, item) =>
         sum + (parseFloat(item.quantity_per_student * item.unit_price) || 0),
       0
     );
   }, [inventoryItems]);
 
-  console.log('selectedItemIds', selectedItemIds)
-
   return (
     <div className="space-y-4 text-cyan-800">
-      <h2 className="text-2xl font-bold text-cyan-700">Enter Class Items</h2>
+      <h2 className="text-2xl font-bold text-cyan-700">{!isreadonly ? 'Class Items' : 'Class Supply Items'}</h2>
 
       <div className="flex space-x-1 mb-4">
         <div className="flex-1">
@@ -98,17 +97,18 @@ const AddeditClassitemspage = ({
                     <th className="p-2">Quantity per Student</th>
                     <th className="p-2">Unit Price(GHC)</th>
                     <th className="p-2">Total Price(GHC)</th>
-                    <th className="p-2">Actions</th>
+                    {!isreadonly && <th className="p-2">Actions</th>}
                   </tr>
                 </thead>
                 <tbody className="overflow-scroll">
-                  {inventoryItems.map((item, index) => (
+                  {inventoryItems?.map((item, index) => (
                     <tr key={index} className="border-b">
                       <td className="p-2 ">
                         <select
                           id={`item_id-select-${index}`}
                           className="w-full border-2 border-cyan-300 rounded-md p-1"
                           value={item.item_id}
+                          disabled={isreadonly}
                           onChange={(e) =>
                             handleInvoiceChange(
                               index,
@@ -124,7 +124,7 @@ const AddeditClassitemspage = ({
                               value={dataItem.item_id}
                               // disabled={true}
                               disabled={
-                                selectedItemIds.has(dataItem.item_id) 
+                                selectedItemIds.has(dataItem.item_id)
                                 // dataItem.item_id !== item.item_id
                               }
                             >
@@ -138,6 +138,7 @@ const AddeditClassitemspage = ({
                         <input
                           type="number"
                           required
+                          readOnly={isreadonly}
                           value={item.quantity_per_student}
                           onChange={(e) =>
                             handleInvoiceChange(
@@ -184,15 +185,17 @@ const AddeditClassitemspage = ({
                         />
                       </td>
 
-                      <td className="p-2">
-                        <button
-                          type="button"
-                          onClick={() => removeInvoiceItem(index)}
-                          className="text-red-500"
-                        >
-                          <FaMinusCircle size={"1.3rem"} />
-                        </button>
-                      </td>
+                      {!isreadonly && (
+                        <td className="p-2">
+                          <button
+                            type="button"
+                            onClick={() => removeInvoiceItem(index)}
+                            className="text-red-500"
+                          >
+                            <FaMinusCircle size={"1.3rem"} />
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -203,37 +206,39 @@ const AddeditClassitemspage = ({
             <div className="mt-4 text-right">
               <span className="font-bold text-lg">Total Amount: </span>
               <span className="text-xl text-cyan-600">
-                GHC {totalAmount.toFixed(2)}
+                GHC {totalAmount?.toFixed(2)}
               </span>
             </div>
 
-            <div className="mt-4 flex justify-between">
-              <button
-                type="button"
-                onClick={addInvoiceItem}
-                className="text-cyan-600 flex items-center"
-              >
-                <FaPlusCircle size={"1.3rem"} className="mr-2" /> Add Inventory
-                Item
-              </button>
-              <div className="space-x-4 flex justify-around">
+            {!isreadonly && (
+              <div className="mt-4 flex justify-between">
                 <button
                   type="button"
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center"
-                  onClick={resetForm}
+                  onClick={addInvoiceItem}
+                  className="text-cyan-600 flex items-center"
                 >
-                  <FaUndo className="mr-2" />
-                  Reset
+                  <FaPlusCircle size={"1.3rem"} className="mr-2" /> New
+                  Item
                 </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 flex items-center"
-                >
-                  <FaSave className="mr-2" />
-                  Add Class Items
-                </button>
+                <div className="space-x-4 flex justify-around">
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center"
+                    onClick={resetForm}
+                  >
+                    <FaUndo className="mr-2" />
+                    Reset
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 flex items-center"
+                  >
+                    <FaSave className="mr-2" />
+                    Add Class Items
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </form>
         </div>
       )}

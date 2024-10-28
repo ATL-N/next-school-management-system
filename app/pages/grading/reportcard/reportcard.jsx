@@ -13,27 +13,6 @@ import { useSession } from "next-auth/react";
 import { fetchData } from "../../../config/configFile";
 import LoadingPage from "../../../components/generalLoadingpage";
 
-const dummyStudents = [
-  {
-    id: 1,
-    name: "John Doe",
-    average: 85.22,
-    total: 255.66,
-    email: "john.doe@example.com",
-    grades: {
-      math: { grade: 85, remark: "Good performance" },
-      science: { grade: 92, remark: "Excellent work" },
-      literature: { grade: 78, remark: "Room for improvement" },
-    },
-    remarks: {
-      classTeacherRemark:
-        "John shows great potential. He needs to focus more on math.",
-      headTeacherRemark:
-        "Good overall performance. Keep up the hard work, John!",
-    },
-  },
-];
-
 const ReportCardPage = ({ class_id, semester_id, onClose }) => {
   const { data: session, status } = useSession();
 
@@ -50,6 +29,7 @@ const ReportCardPage = ({ class_id, semester_id, onClose }) => {
   const [activeSem, setActiveSem] = useState(null);
   const [isAuthorised, setIsAuthorised] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [classesData, setClassesData] = useState([]);
   const [semesterData, setSemesterData] = useState([]);
 
@@ -76,13 +56,15 @@ const ReportCardPage = ({ class_id, semester_id, onClose }) => {
   useEffect(() => {
     fetchallData();
 
-    const authorizedRoles = ["admin", "head teacher"];
-    const authorizedPermissions = ["delete grading scheme", "add student"];
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["delete grading scheme"];
+    const authorizedPermissions2 = ["view report card"];
 
     if (
       session?.user?.permissions?.some((permission) =>
-        authorizedPermissions.includes(permission)
-      )
+        authorizedPermissions2.includes(permission)
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
@@ -103,8 +85,16 @@ const ReportCardPage = ({ class_id, semester_id, onClose }) => {
     }
   }, [selectedClass, selectedSemester]);
 
+  useEffect(() => {
+    if (selectedStudents.length === students.length) {
+      setSelectAll(true);
+    } else {
+      setSelectAll(false);
+    }
+  }, [selectedStudents]);
+
   const fetchClassAcademicReports = async (class_id, semester_id) => {
-    // setIsLoading(true);
+    setLoading(true);
     // setError(null);
     try {
       const data = await fetchData(
@@ -128,7 +118,7 @@ const ReportCardPage = ({ class_id, semester_id, onClose }) => {
       // setError("Failed to fetch analytics data. Please try again later.");
       console.error("Error fetching analytics:", err);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -199,8 +189,17 @@ const ReportCardPage = ({ class_id, semester_id, onClose }) => {
 
       // Column 1
       doc.text(`Name: ${report.name}`, 5, startY);
-      doc.text(`Student ID: ${report.id}`, 5, startY + lineHeight);
-      doc.text(`Class: ${report.className}`, 5, startY + 2 * lineHeight);
+      doc.text(
+        `Class: ${report?.historicalClassName}`,
+        5,
+        startY + 2 * lineHeight
+      );
+      doc.text(
+        `Promoted To: ${report.promotedToClass}`,
+        5,
+        startY + lineHeight
+      );
+
 
       // Column 2
       doc.text(`No. of Students: ${totalStudents}`, columnWidth + 5, startY);
@@ -428,16 +427,16 @@ const ReportCardPage = ({ class_id, semester_id, onClose }) => {
 
       <div className="bg-white shadow-md rounded-lg p-6">
         <form className="mb-4 flex space-x-4">
-          <div className="mb-4 flex space-x-4">
+          <div className="mb-4 flex space-x-4 w-full">
             {class_id ? (
-              <div className="border-2 border-cyan-300 rounded-md p-2">
+              <div className="border-2 border-cyan-300 rounded-md p-2 w-full ">
                 {classesData
                   ?.filter((cls) => cls.class_id === class_id)
                   .map((cls) => cls.class_name || "No class selected")}
               </div>
             ) : (
               <select
-                className="border-2 border-cyan-300 rounded-md p-2"
+                className="border-2 border-cyan-300 rounded-md p-2 w-[50%]"
                 value={selectedClass}
                 onChange={handleClassChange}
                 required
@@ -451,13 +450,13 @@ const ReportCardPage = ({ class_id, semester_id, onClose }) => {
               </select>
             )}
             {semester_id ? (
-              <div className="border-2 border-cyan-300 rounded-md p-2">
+              <div className="border-2 border-cyan-300 rounded-md p-2 w-full">
                 {semesterData
                   ?.filter((sem) => sem.id === semester_id)
                   .map((sem) => sem.semester_name) || "No semester selected"}
               </div>
             ) : (
-              <div className="flex-1">
+              <div className="flex-1 w-full">
                 {/* <label htmlFor="semester-select" className="block mb-2">
                 Select Semester:
               </label> */}
@@ -469,11 +468,8 @@ const ReportCardPage = ({ class_id, semester_id, onClose }) => {
                 >
                   <option value="">Select a semester</option>
                   {semesterData.map((semester) => (
-                    <option
-                      key={semester?.id}
-                      value={semester?.id}
-                    >
-                      {semester?.semester_name}
+                    <option key={semester?.id} value={semester?.id}>
+                      {semester.semester_name}({semester.start_date})
                     </option>
                   ))}
                 </select>
@@ -483,47 +479,53 @@ const ReportCardPage = ({ class_id, semester_id, onClose }) => {
         </form>
 
         {selectedClass && selectedSemester && (
-          <table className="w-full">
-            <thead>
-              <tr>
-                <th>
-                  <input
-                    type="checkbox"
-                    checked={selectAll}
-                    onChange={handleSelectAll}
-                    className="form-checkbox h-5 w-5 text-cyan-600"
-                  />
-                </th>
-                <th>Name</th>
-                <th>Student Average</th>
-                <th>Total Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              {students?.map((student) => (
-                <tr key={student.id}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      className="form-checkbox h-5 w-5 text-cyan-600"
-                      onChange={() => handleStudentSelection(student.id)}
-                      checked={selectedStudents.includes(student.id)}
-                    />
-                  </td>
-                  <td>{student.name}</td>
-                  <td>{student.average.toFixed(2)}</td>
-                  <td>{student.total.toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <>
+            {loading ? (
+              <divv>Loading...</divv>
+            ) : (
+              <table className="w-full">
+                <thead>
+                  <tr>
+                    <th>
+                      <input
+                        type="checkbox"
+                        checked={selectAll}
+                        onChange={handleSelectAll}
+                        className="form-checkbox h-5 w-5 text-cyan-600"
+                      />
+                    </th>
+                    <th>Name</th>
+                    <th>Student Average</th>
+                    <th>Total Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {students?.map((student) => (
+                    <tr key={student.id}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          className="form-checkbox h-5 w-5 text-cyan-600"
+                          onChange={() => handleStudentSelection(student.id)}
+                          checked={selectedStudents.includes(student.id)}
+                        />
+                      </td>
+                      <td>{student.name}</td>
+                      <td>{student.average.toFixed(2)}</td>
+                      <td>{student.total.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </>
         )}
 
         <div className="flex justify-between space-x-4 mt-4">
           <div>
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-gray-500"
+              className="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-gray-500 h-full"
             >
               Close
             </button>
@@ -542,7 +544,7 @@ const ReportCardPage = ({ class_id, semester_id, onClose }) => {
               <FaFileAlt className="mr-2" />
               Generate Selected Report Cards
             </button>
-            <button
+            {/* <button
               onClick={handleEmailReports}
               className={`px-4 py-2 text-white rounded-md flex items-center ${
                 selectedStudents.length === 0
@@ -553,7 +555,7 @@ const ReportCardPage = ({ class_id, semester_id, onClose }) => {
             >
               <FaEnvelope className="mr-2" />
               Email Selected Report Cards
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

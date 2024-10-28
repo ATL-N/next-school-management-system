@@ -55,19 +55,20 @@ const AddEditStaff = ({ id, staffData }) => {
   const [isAuthorised, setIsAuthorised] = useState(false);
 
 useEffect(() => {
-  const authorizedRoles = ["admin", "head teacher"];
+  const authorizedRoles = ["admin"];
   const authorizedPermissions = ["add staff", "update staff"];
 
   if (
     session?.user?.permissions?.some((permission) =>
       authorizedPermissions.includes(permission)
-    )
+    ) ||
+    authorizedRoles.includes(session?.user?.role)
   ) {
     setIsAuthorised(true);
   } else {
     setIsAuthorised(false);
   }
-}, [session]);
+}, [session, status]);
 
   useEffect(() => {
     const fetchStaffData = async () => {

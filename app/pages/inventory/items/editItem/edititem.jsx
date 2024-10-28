@@ -29,16 +29,16 @@ const [isAuthorised, setIsAuthorised] = useState(false);
 
 useEffect(() => {
 
-  const authorizedRoles = ["admin", "head teacher"];
+  const authorizedRoles = ["admin"];
   const authorizedPermissions = [
     "update item",
-    "add student",
   ];
 
   if (
     session?.user?.permissions?.some((permission) =>
       authorizedPermissions.includes(permission)
-    )
+    ) ||
+    authorizedRoles.includes(session?.user?.role)
   ) {
     setIsAuthorised(true);
   } else {
@@ -166,18 +166,18 @@ useEffect(() => {
     }
   };
 
-  
+   if (isLoading || status==='loading') {
+     return <Loadingpage />;
+   }
    if (!isAuthorised) {
      return (
        <div className="flex items-center">
-         You are not authorised to be on this page
+         You are not authorised to be on this page...!
        </div>
      );
    }
 
-   if (isLoading) {
-     return <Loadingpage />;
-   }
+  
   return (
     <>
 

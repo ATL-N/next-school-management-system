@@ -45,6 +45,8 @@ const UserManagement = () => {
   const [isAuthorised, setIsAuthorised] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [sender_id, setSender_id] = useState();
+      const authorizedPermissions2 = ["view students, view users", "add staff"];
+
 
   useEffect(() => {
     setIsLoading(true);
@@ -65,13 +67,14 @@ const UserManagement = () => {
       setIsLoading(false);
     }
 
-    const authorizedRoles = ["admin", "head teacher"];
-    const authorizedPermissions = ["view students, view users", "add staff"];
+    const authorizedRoles = ["admin", "head teacher", 'student', 'teaching staff'];
+    const authorizedPermissions = ["view users"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||      
+        authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
@@ -240,7 +243,14 @@ const UserManagement = () => {
     );
   }
 
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+  const COLORS = [
+    "#0088FE",
+    "#00C49F",
+    "#FFBB28FF",
+    "#FF8042",
+    "#AE3E49",
+    "#0E7490",
+  ];
 
   return (
     <>
@@ -274,20 +284,25 @@ const UserManagement = () => {
         <div className="bg-white p-4 rounded shadow mb-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-cyan-700">User List</h2>
-            <div className="flex ">
-              <button
-                onClick={handleUserRoles}
-                className="p-2 bg-cyan-700 text-white rounded hover:bg-cyan-600 flex items-center mr-2"
-              >
-                <FaUserPlus className="mr-2" /> User Roles
-              </button>
-              <button
-                onClick={handleRolesandPermissions}
-                className="p-2 bg-cyan-700 text-white rounded hover:bg-cyan-600 flex items-center"
-              >
-                <FaUserShield className="mr-2" /> Roles & Permissions
-              </button>
-            </div>
+            {(session?.user?.role === "admin" ||
+              session?.user?.permissions?.some((permission) =>
+                authorizedPermissions2.includes(permission)
+              )) && (
+                <div className="flex ">
+                  <button
+                    onClick={handleUserRoles}
+                    className="p-2 bg-cyan-700 text-white rounded hover:bg-cyan-600 flex items-center mr-2"
+                  >
+                    <FaUserPlus className="mr-2" /> User Roles
+                  </button>
+                  <button
+                    onClick={handleRolesandPermissions}
+                    className="p-2 bg-cyan-700 text-white rounded hover:bg-cyan-600 flex items-center"
+                  >
+                    <FaUserShield className="mr-2" /> Roles & Permissions
+                  </button>
+                </div>
+              )}
           </div>
           <div className="overflow-x-auto tableWrap">
             <CustomTable
@@ -303,6 +318,8 @@ const UserManagement = () => {
               displayDetailsBtn={false}
               editIcon={<FaTrash color="red" />}
               editTitle="delete user with id "
+              displayActions={session?.user?.role === "admin" || session?.user?.permissions?.some((permission) =>
+                authorizedPermissions2.includes(permission))}
             />
           </div>
         </div>
@@ -311,7 +328,7 @@ const UserManagement = () => {
             User Distribution
           </h2>
           {userStats?.stats?.length > 0 && (
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={400}>
               <PieChart>
                 <Pie
                   data={userStats?.stats}

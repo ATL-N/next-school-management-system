@@ -31,14 +31,11 @@ import { FaBookOpenReader, FaFileCirclePlus } from "react-icons/fa6";
 import { fetchData } from "../../config/configFile";
 import LoadingPage from "../../components/generalLoadingpage";
 import CustomTable from "../../components/listtableForm";
-import Link from "next/link";
 import Addeditgradescheme from "./addgradescheme/addgradingscheme";
 import Modal from "../../components/modal/modal";
 import DeleteUser from "../../components/deleteuser";
-import AddEditExpense from "../expenses/addeditexpense/addexpense";
 import ClassMasterSheet from "./gradebook/classmastersheet";
 import Addgrades from "./add/addgrade";
-import Viewinvoice from "../financial/viewClassInvoice/viewclassinvoice";
 import ClassRemarksTable from "../../components/studentremarkscomponent/classremarkstable";
 import ReportCardPage from "./reportcard/reportcard";
 import ClassGradeAnalyticsPage from "./analytics/classanalytics";
@@ -52,7 +49,10 @@ const GradeAnalyticsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeSem, setActiveSem] = useState(null);
+  const [isAuthorised, setIsAuthorised] = useState(false);
   const [isDeleteAuthorised, setIsDeleteAuthorised] = useState(false);
+  const authorizedRoles = ["admin", 'teaching staff'];
+const [activeSemester, setActiveSemester] = useState();
 
   useEffect(() => {
     if (
@@ -69,19 +69,31 @@ const GradeAnalyticsPage = () => {
   }, [status, session]);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
-    const authorizedPermissions = ["delete grading scheme", "add student"];
+    const authorizedPermissions = ["delete grading scheme"];
+    const authorizedPermissions2 = ["view examinations"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) 
     ) {
       setIsDeleteAuthorised(true);
     } else {
       setIsDeleteAuthorised(false);
     }
-  }, [session]);
+
+    if (
+      session?.user?.permissions?.some((permission) =>
+        authorizedPermissions2.includes(permission)
+      ) ||
+      session?.user?.roles?.some((role) => authorizedRoles.includes(role)) ||
+      authorizedRoles.includes(session?.user?.role)
+    ) {
+      setIsAuthorised(true);
+    }else{
+      setIsAuthorised(false)
+    }
+  }, [session, status]);
 
   const headerNames = ["ID", "Class name", "Class Average"];
 
@@ -115,31 +127,6 @@ const GradeAnalyticsPage = () => {
       console.error("Error fetching analytics:", err);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleAddExpense = async () => {
-    try {
-      const [staffdata, suppliersdata] = await Promise.all([
-        fetchData("/api/staff/all", "staff"),
-        fetchData("/api/inventory/suppliers/get", "suppliers", false),
-      ]);
-      setModalContent(
-        <div>
-          <AddEditExpense
-            staffData={staffdata}
-            suppliersData={suppliersdata}
-            onCancel={() => {
-              setShowModal(false);
-              fetchAnalytics(activeSem);
-            }}
-          />
-        </div>
-      );
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setShowModal(true);
     }
   };
 
@@ -302,31 +289,6 @@ const GradeAnalyticsPage = () => {
     }
   };
 
-  const handleViewInvoice = async () => {
-    try {
-      const [semesterData, classData] = await Promise.all([
-        fetchData("/api/semester/all", "semester"),
-        fetchData("/api/classes/all", "staff"),
-      ]);
-
-      setModalContent(
-        <div>
-          <Viewinvoice
-            classData={classData?.classes}
-            semesterData={semesterData}
-            onCancel={() => {
-              setShowModal(false);
-            }}
-          />
-        </div>
-      );
-    } catch (err) {
-      console.log("Error fetching teacher data:", err);
-    } finally {
-      setShowModal(true);
-    }
-  };
-
   const handleAddEditClassRemarks = (classId) => {
     setModalContent(
       <ClassRemarksTable
@@ -377,6 +339,9 @@ const GradeAnalyticsPage = () => {
     return <LoadingPage />;
   }
 
+  if (!isAuthorised) {
+    return <div>You are not authorised to be on this page...!</div>;
+  }
   if (error) {
     return (
       <div>error</div>
@@ -458,15 +423,16 @@ const GradeAnalyticsPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6">
         <div className="bg-white p-4 rounded shadow">
           <h2 className="text-xl font-semibold mb-4 text-cyan-700">Actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-            <button
-              onClick={handleTakeExamsMarks}
-              className="p-4 bg-cyan-100 rounded-lg text-center hover:bg-cyan-200 transition duration-300"
-            >
-              <FaUserGraduate className="mx-auto mb-2 text-2xl" /> Enter Exams
-              results
-            </button>
-
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {authorizedRoles.includes(session?.user?.role) && (
+              <button
+                onClick={handleTakeExamsMarks}
+                className="p-4 bg-cyan-100 rounded-lg text-center hover:bg-cyan-200 transition duration-300"
+              >
+                <FaUserGraduate className="mx-auto mb-2 text-2xl" /> Enter Exams
+                results
+              </button>
+            )}
             {/* <button
               onClick={handleAddGradingScheme}
               className="p-4 bg-cyan-100 rounded-lg text-center hover:bg-cyan-200 transition duration-300"
@@ -497,7 +463,7 @@ const GradeAnalyticsPage = () => {
               Cards
             </button>
 
-            <Link
+            {/* <Link
               href={"/pages/studentremarks/details"}
               about="Click to open remarks page"
               className="p-4 bg-green-200 rounded-lg text-center hover:bg-green-300 transition duration-300"
@@ -508,7 +474,7 @@ const GradeAnalyticsPage = () => {
                 <FaBookOpen className="mx-auto text-2xl" />
                 Remarks
               </button>
-            </Link>
+            </Link> */}
           </div>
         </div>
         <div className="bg-white p-4 rounded shadow mb-4">
@@ -516,12 +482,14 @@ const GradeAnalyticsPage = () => {
             <h2 className="text-xl font-semibold mb-4 text-cyan-700">
               Class Averages
             </h2>
-            <button
-              onClick={handleTakeExamsMarks}
-              className="w-full sm:w-auto px-4 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800 transition duration-300 ease-in-out flex items-center justify-center"
-            >
-              <FaPlus className="mr-2" /> Record Accessment
-            </button>
+            {authorizedRoles.includes(session?.user?.role) && (
+              <button
+                onClick={handleTakeExamsMarks}
+                className="w-full sm:w-auto px-4 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800 transition duration-300 ease-in-out flex items-center justify-center"
+              >
+                <FaPlus className="mr-2" /> Record Accessment
+              </button>
+            )}
           </div>
           {/* {recentExpenses?.length > 0 ? ( */}
           <CustomTable
@@ -560,12 +528,14 @@ const GradeAnalyticsPage = () => {
             <h2 className="text-xl font-semibold mb-4 text-cyan-700">
               Grading Scheme
             </h2>
+{(session?.user?.role==='admin' || session?.user?.role==='head teacher') &&
             <button
               onClick={handleAddGradingScheme}
               className="w-full sm:w-auto px-4 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800 transition duration-300 ease-in-out flex items-center justify-center"
             >
               <FaPlus className="mr-2" /> Add Grading Scheme
             </button>
+}
           </div>
           {/* {recentExpenses?.length > 0 ? ( */}
           <CustomTable

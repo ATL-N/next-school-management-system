@@ -32,15 +32,42 @@ const EventManagement = () => {
   const [eventsStats, setEventsStats] = useState([]);
   const [viewMode, setViewMode] = useState("list");
   const [isLoading, setIsLoading] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isDeleteAuthorised, setIsDeleteAuthorised] = useState(false);
   const [activeSem, setActiveSem] = useState();
+const [isAuthorised, setIsAuthorised] = useState(true);
+const [activeSemester, setActiveSemester] = useState();
 
   const headerNames = ["ID", "Title", "Date", "Type"];
 
+useEffect(() => {
+  const authorizedRoles = ["admin"];
+  const authorizedPermissions = ["view events"];
+
+  if (
+    session?.user?.permissions?.some((permission) =>
+      authorizedPermissions.includes(permission)
+    ) ||
+    authorizedRoles.includes(session?.user?.role)
+  ) {
+    setIsAuthorised(true);
+  } else {
+    setIsAuthorised(false);
+  }
+
+  if (
+    status === "authenticated" &&
+    session?.user?.activeSemester?.semester_id
+  ) {
+    setActiveSemester(session?.user?.activeSemester?.semester_id);
+    // setUserId(session?.user?.id);
+  }
+}, [session, status]);
+
+
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
-    const authorizedPermissions = ["delete event", "view staff"];
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["delete event"];
 
     if (
       session?.user?.permissions?.some((permission) =>
@@ -66,7 +93,7 @@ const EventManagement = () => {
   }, [status, session]);
 
   const fetchEvents = async (semester_id) => {
-    setLoading(true);
+    // setLoading(true);
     const eventdata = await fetchData(
       `/api/events/getallevents/${semester_id}`,
       "",
@@ -90,14 +117,17 @@ const EventManagement = () => {
 
   const handleAddEvent = () => {
     setModalContent(
-      <Addeditevent onCancel={() => setShowModal(false)} onAdd={fetchEvents} />
+      <Addeditevent
+        onCancel={() => setShowModal(false)}
+        onAdd={fetchEvents(activeSem)}
+      />
     );
     setShowModal(true);
   };
 
   const onClose = () => {
     setShowModal(false);
-    fetchEvents();
+    fetchEvents(activeSem);
   };
 
   const handleAddeditevent = (event_id) => {
@@ -107,8 +137,6 @@ const EventManagement = () => {
         <Addeditevent id={event_id} eventData={event} onCancel={onClose} />
       );
       setShowModal(true);
-    } else {
-      console.log(`No event found with id: ${event_id}`);
     }
   };
 
@@ -119,8 +147,6 @@ const EventManagement = () => {
         <EventDetails event={event} onClose={() => setShowModal(false)} />
       );
       setShowModal(true);
-    } else {
-      console.log(`No event found with id: ${event_id}`);
     }
   };
 
@@ -132,7 +158,7 @@ const EventManagement = () => {
   };
 
   const handleDeleteEvent = async (event_id) => {
-    if (isDeleteAuthorised) {
+    if (!isDeleteAuthorised) {
       setModalContent(
         <div className="flex items-center text-cyan-700">
           You are not authorised to perform this action
@@ -223,6 +249,14 @@ const EventManagement = () => {
     );
   }
 
+  if (!isAuthorised) {
+    return (
+      <div className="flex items-center text-cyan-700">
+        You are not authorised to be on this page...!
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6 text-cyan-700">
@@ -258,12 +292,15 @@ const EventManagement = () => {
             Event Management
           </h2>
           <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <button
-              onClick={handleAddEvent}
-              className="w-full sm:w-auto px-4 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800 transition duration-300 ease-in-out flex items-center justify-center"
-            >
-              <FaPlus className="mr-2" /> Add New Event
-            </button>
+            {(session?.user?.role === "admin" ||
+              session?.user?.role === "head teacher") && (
+              <button
+                onClick={handleAddEvent}
+                className="w-full sm:w-auto px-4 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800 transition duration-300 ease-in-out flex items-center justify-center"
+              >
+                <FaPlus className="mr-2" /> Add New Event
+              </button>
+            )}
             <Tab.Group>
               <Tab.List className="flex p-1 px-3 space-x-1 bg-cyan-900/20 rounded-xl">
                 <Tab
@@ -316,6 +353,14 @@ const EventManagement = () => {
                 handleEdit={handleAddeditevent}
                 handleDelete={handleDeleteEvent}
                 displaySearchBar={false}
+                displayDelBtn={
+                  session?.user?.role === "admin" ||
+                  session?.user?.role === "head teacher"
+                }
+                displayEditBtn={
+                  session?.user?.role === "admin" ||
+                  session?.user?.role === "head teacher"
+                }
               />
             </div>
           ) : (

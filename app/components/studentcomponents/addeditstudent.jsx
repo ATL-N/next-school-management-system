@@ -345,6 +345,7 @@ const Addeditstudent = ({
                 value={formData[`parent${parentIndex}_selection`]}
                 onChange={handleChange}
                 isReadOnly={isDetails}
+                isDisAbled={isDetails}
                 options={[
                   { value: "", label: "Select Existing Parent (Optional)" },
                   ...extractParentData(parentsData)?.map((parent) => ({

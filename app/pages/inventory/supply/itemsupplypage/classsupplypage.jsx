@@ -48,12 +48,14 @@ const ClassSupplyManagement = ({ onCancel, isReadOnly=false }) => {
   }, [status, session]);
 
   useEffect(() => {
-    const authorizedPermissions = ["supply items", "add staff"];
+      const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["supply items"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
@@ -89,6 +91,14 @@ const ClassSupplyManagement = ({ onCancel, isReadOnly=false }) => {
       setIsLoading(false);
     }
   };
+
+    const findSupplyForItem = (studentSupplies, itemId) => {
+      return (
+        studentSupplies.find((supply) => supply.item_id === itemId) || {
+          quantity: 0,
+        }
+      );
+    };
 
   const fetchItemData = async (classId, semesterId) => {
     const data = await fetchData(
@@ -220,22 +230,33 @@ const ClassSupplyManagement = ({ onCancel, isReadOnly=false }) => {
     );
   }
 
-  // if (!isAuthorised) {
-  //   return (
-  //     <div className="flex items-center">
-  //       You are not authorised to be on this page
-  //     </div>
-  //   );
-  // }
+  if (!isAuthorised) {
+    return (
+      <div className="flex items-center">
+        You are not authorised to be on this page
+      </div>
+    );
+  }
 
-  const totalSupplies = useMemo(() => {
-    return supplies?.reduce((total, student) => {
-      student.supplies.forEach((supply) => {
-        total[supply.item_id] = (total[supply.item_id] || 0) + supply.quantity;
-      });
-      return total;
-    }, {});
-  }, [supplies]);
+const totalSupplies = useMemo(() => {
+  const totals = {};
+
+  // Initialize totals for all items with 0
+  itemsData?.forEach((item) => {
+    totals[item.item_id] = 0;
+  });
+
+  // Sum up quantities for each item
+  supplies?.forEach((student) => {
+    itemsData?.forEach((item) => {
+      const supply = findSupplyForItem(student.supplies, item.item_id);
+      totals[item.item_id] += Number(supply.quantity) || 0;
+    });
+  });
+
+  return totals;
+}, [supplies, itemsData]);
+
 
   return (
     <>
@@ -293,6 +314,7 @@ const ClassSupplyManagement = ({ onCancel, isReadOnly=false }) => {
                   {semesterData.map((semester) => (
                     <option key={semester.id} value={semester.id}>
                       {semester.semester_name}
+                      {semester?.start_date}
                     </option>
                   ))}
                 </select>
@@ -323,25 +345,33 @@ const ClassSupplyManagement = ({ onCancel, isReadOnly=false }) => {
                       <tbody className="overflow-scroll">
                         {supplies?.map((student) => (
                           <tr key={student.student_id} className="border-b">
-                            <td className="p-2">{student.student_name}({student.amountowed})</td>
-                            {student.supplies.map((supply) => (
-                              <td key={supply.item_id} className="p-2">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  disabled={isReadOnly}
-                                  value={supply.quantity}
-                                  onChange={(e) =>
-                                    handleQuantityChange(
-                                      student.student_id,
-                                      supply.item_id,
-                                      parseInt(e.target.value) || 0
-                                    )
-                                  }
-                                  className="w-full border-2 border-cyan-300 rounded-md p-1"
-                                />
-                              </td>
-                            ))}
+                            <td className="p-2">
+                              {student.student_name}({student.amountowed})
+                            </td>
+                            {itemsData?.map((item) => {
+                              const supply = findSupplyForItem(
+                                student.supplies,
+                                item.item_id
+                              );
+                              return (
+                                <td key={item.item_id} className="p-2">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    disabled={isReadOnly}
+                                    value={supply.quantity}
+                                    onChange={(e) =>
+                                      handleQuantityChange(
+                                        student.student_id,
+                                        item.item_id,
+                                        parseInt(e.target.value) || 0
+                                      )
+                                    }
+                                    className="w-full border-2 border-cyan-300 rounded-md p-1"
+                                  />
+                                </td>
+                              );
+                            })}
                           </tr>
                         ))}
                       </tbody>
@@ -350,7 +380,7 @@ const ClassSupplyManagement = ({ onCancel, isReadOnly=false }) => {
                           <td className="p-2 font-bold">Total</td>
                           {itemsData?.map((item) => (
                             <td key={item.item_id} className="p-2 font-bold">
-                              {totalSupplies[item.item_id] || 0}
+                              {totalSupplies[item.item_id]}
                             </td>
                           ))}
                         </tr>

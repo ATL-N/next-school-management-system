@@ -15,7 +15,7 @@ const Addeditprocurement = ({
   onCancel,
   supplier_id,
   selected_date,
-  readonly=false
+  readonly = false,
 }) => {
   const { data: session, status } = useSession();
 
@@ -32,16 +32,14 @@ const Addeditprocurement = ({
   const [isEditing, setIsEditing] = useState(!!supplier_id && !!selected_date);
 
   useEffect(() => {
-    const authorizedPermissions = [
-      "add procurement",
-      "update procurement",
-      "add staff",
-    ];
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["add new procurements"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsLoading(true);
       fetchItems();

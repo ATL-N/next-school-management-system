@@ -38,7 +38,6 @@ const EnterTimetable = ({
     );
   }
 
-  console.log("teachingStaff", teachingStaff);
 
   return (
     <div className="space-y-6 text-cyan-800">

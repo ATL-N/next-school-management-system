@@ -32,19 +32,20 @@ const AddEditUserHealthIncident = ({
   const [isAuthorised, setIsAuthorised] = useState(false);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
-    const authorizedPermissions = ["add staff", "update staff"];
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["add health incident",];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
       setIsAuthorised(false);
     }
-  }, [session]);
+  }, [session, status]);
 
   useEffect(() => {
     console.log("id", id);

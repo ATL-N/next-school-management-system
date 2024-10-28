@@ -25,7 +25,7 @@ const AddEditExpense = ({
   staffData,
   suppliersData,
 }) => {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   const initialState = {
     expense_category: "",
@@ -46,23 +46,23 @@ const AddEditExpense = ({
   const [isAuthorised, setIsAuthorised] = useState(false);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
+    const authorizedRoles = ["admin"];
     const authorizedPermissions = [
       "add expense",
       "update expense",
-      "add student",
     ];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
       setIsAuthorised(false);
     }
-  }, [session]);
+  }, [session, status]);
 
   useEffect(() => {
     if (id && expenseData) {
@@ -154,17 +154,19 @@ const AddEditExpense = ({
     ? `Edit Expense: ${formData.expense_category}`
     : "Add New Expense";
 
+ if (isLoading) {
+   return <Loadingpage />;
+ }
+
   if (!isAuthorised) {
     return (
       <div className="flex items-center">
-        You are not authorised to be on this page
+        You are not authorised to be on this page...!
       </div>
     );
   }
 
-  if (isLoading) {
-    return <Loadingpage />;
-  }
+ 
 
   return (
     <>

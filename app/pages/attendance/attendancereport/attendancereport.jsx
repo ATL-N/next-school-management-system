@@ -16,49 +16,10 @@ const AttendanceReport = ({onClose}) => {
   const [classes, setClasses] = useState([]);
   const [semesters, setSemesters] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthorised, setIsAuthorised] = useState(true);
+  const [activeSemester, setActiveSemester] = useState();
 
-  const dummyGetAttendanceReport = async (classId, semester_id) => {
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    return {
-      students: [
-        {
-          id: "student1",
-          name: "John Doe",
-          studentId: "S001",
-          present: 18,
-          absent: 2,
-          late: 1,
-          attendanceRate: 90,
-        },
-        {
-          id: "student2",
-          name: "Jane Smith",
-          studentId: "S002",
-          present: 20,
-          absent: 1,
-          late: 0,
-          attendanceRate: 95,
-        },
-        {
-          id: "student3",
-          name: "Bob Johnson",
-          studentId: "S003",
-          present: 15,
-          absent: 4,
-          late: 2,
-          attendanceRate: 75,
-        },
-      ],
-    };
-  };
-
-  // classes = [
-  //   { id: "class1", name: "Class 1A" },
-  //   { id: "class2", name: "Class 2B" },
-  //   { id: "class3", name: "Class 3C" },
-  // ];
 
   const headerNames = [
     "student",
@@ -67,6 +28,30 @@ const AttendanceReport = ({onClose}) => {
     "late",
     "attendance rate",
   ];
+
+  useEffect(() => {
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["view attendance report"];
+
+    if (
+      session?.user?.permissions?.some((permission) =>
+        authorizedPermissions.includes(permission)
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
+    ) {
+      setIsAuthorised(true);
+    } else {
+      setIsAuthorised(false);
+    }
+
+    if (
+      status === "authenticated" &&
+      session?.user?.activeSemester?.semester_id
+    ) {
+      setActiveSemester(session?.user?.activeSemester?.semester_id);
+      // setUserId(session?.user?.id);
+    }
+  }, [session, status]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -133,6 +118,14 @@ const AttendanceReport = ({onClose}) => {
 
   if (isLoading || classes.length < 1 || semesters.length < 1) {
     return <LoadingPage />;
+  }
+
+  if (!isAuthorised) {
+    return (
+      <div className="flex items-center text-cyan-700">
+        You are not authorised to be on this page...!
+      </div>
+    );
   }
 
   return (

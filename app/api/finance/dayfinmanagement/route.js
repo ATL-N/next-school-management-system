@@ -3,28 +3,6 @@ import db from "../../../lib/db";
 
 export async function GET(req, { params }) {
   try {
-    // const { semester_id } = params;
-    // if (!semester_id) {
-    //   return NextResponse.json(
-    //     { error: "Semester ID is required" },
-    //     { status: 400 }
-    //   );
-    // }
-
-    // // Fetch semester dates (for reference only)
-    // const semesterQuery = `
-    //   SELECT start_date, end_date FROM semesters
-    //   WHERE semester_id = $1 AND status != 'deleted'
-    // `;
-    // const semesterResult = await db.query(semesterQuery, [semester_id]);
-    // if (semesterResult.rows.length === 0) {
-    //   return NextResponse.json(
-    //     { error: "Semester not found or not active" },
-    //     { status: 404 }
-    //   );
-    // }
-
-    // Fetch stats for the day and week
     const statsQuery = `
       WITH daily_stats AS (
         SELECT 

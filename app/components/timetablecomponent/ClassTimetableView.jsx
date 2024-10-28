@@ -67,7 +67,7 @@ setSelectedClass(classesData.find((c) => c.class_id === parseInt(selectedClassId
       head: [tableHeaders],
       body: tableData,
       startY: 25,
-      styles: { fontSize: 8, cellPadding: 1 },
+      styles: { fontSize: 14, cellPadding: 1 },
       columnStyles: { 0: { cellWidth: 20 } },
       didDrawCell: (data) => {
         if (data.section === "body" && data.column.index > 0) {
@@ -115,8 +115,8 @@ setSelectedClass(classesData.find((c) => c.class_id === parseInt(selectedClassId
         <>
           <h2 className="text-2xl font-bold text-cyan-700">View Timetable</h2>
          
-          <div className="flex justify-stretch">
-            <div className="mb-4 mr-6">
+          <div className="w-full flex justify-stretch">
+            <div className="w-full mb-4 mr-6">
               <label
                 htmlFor="class-select"
                 className="block text-sm font-medium text-cyan-700"
@@ -137,12 +137,12 @@ setSelectedClass(classesData.find((c) => c.class_id === parseInt(selectedClassId
                 ))}
               </select>
             </div>
-            <div className="mb-4">
+            <div className="w-full mb-4">
               <label
                 htmlFor="semester-select"
                 className="block text-sm font-medium text-cyan-700"
               >
-                Select Class
+                Select Term
               </label>
               <select
                 id="semester-select"
@@ -150,10 +150,10 @@ setSelectedClass(classesData.find((c) => c.class_id === parseInt(selectedClassId
                 value={selectedSemesterId}
                 onChange={handleSemesterChange}
               >
-                <option value="">Select a class</option>
+                <option value="">Select a term</option>
                 {semesterData?.map((semester) => (
                   <option key={semester.id} value={semester.id}>
-                    {semester.semester_name}
+                    {`${semester?.semester_name}(${semester?.start_date})`}
                   </option>
                 ))}
               </select>

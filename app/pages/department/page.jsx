@@ -27,8 +27,12 @@ import Modal from "../../components/modal/modal";
 import DepartmentDetailsPage from "./details/details";
 import CustomTable from "../../components/listtableForm";
 import AddNewDepartment from "./add/adddepartment";
+import { useSession } from "next-auth/react";
+import LoadingPage from "../../components/generalLoadingpage";
 
 const DepartmentManagement = () => {
+    const { data: session, status } = useSession();
+
   const [showModal, setShowModal] = useState(false);
   const [modalContent, setModalContent] = useState(null);
   const [departments, setDepartments] = useState([]);
@@ -36,6 +40,8 @@ const DepartmentManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+const [isAuthorised, setIsAuthorised] = useState(true);
+const [activeSemester, setActiveSemester] = useState();
 
   function extractDepartmentData(data) {
     return data.map((item) => {
@@ -54,6 +60,30 @@ const DepartmentManagement = () => {
     "Head of Department",
     "Number of Staff",
   ];
+
+useEffect(() => {
+  const authorizedRoles = ["admin"];
+  const authorizedPermissions = ["view departments"];
+
+  if (
+    session?.user?.permissions?.some((permission) =>
+      authorizedPermissions.includes(permission)
+    ) ||
+    authorizedRoles.includes(session?.user?.role)
+  ) {
+    setIsAuthorised(true);
+  } else {
+    setIsAuthorised(false);
+  }
+
+  if (
+    status === "authenticated" &&
+    session?.user?.activeSemester?.semester_id
+  ) {
+    setActiveSemester(session?.user?.activeSemester?.semester_id);
+    // setUserId(session?.user?.id);
+  }
+}, [session, status]);
 
   useEffect(() => {
     fetchDepartments();
@@ -222,6 +252,21 @@ const DepartmentManagement = () => {
       setShowModal(true);
     }
   };
+
+  if (isLoading)
+    return (
+      <div>
+        <LoadingPage />
+      </div>
+    );
+
+  if (!isAuthorised) {
+    return (
+      <div className="flex items-center text-cyan-700">
+        You are not authorised to be on this page...!
+      </div>
+    );
+  }
 
   return (
     <>

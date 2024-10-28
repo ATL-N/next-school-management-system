@@ -276,7 +276,7 @@ const TeacherDashboard = () => {
               Cards
             </button>
 
-            <Link
+            {/* <Link
               href={"/pages/studentremarks/details"}
               about="Click to open remarks page"
               className="p-4 bg-green-200 rounded-lg text-center hover:bg-green-300 transition duration-300"
@@ -287,7 +287,7 @@ const TeacherDashboard = () => {
                 <FaBookOpen className="mx-auto text-2xl" />
                 Remarks
               </button>
-            </Link>
+            </Link> */}
           </div>
         </div>
       </div>

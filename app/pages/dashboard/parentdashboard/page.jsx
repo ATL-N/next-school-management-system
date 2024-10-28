@@ -1,4 +1,4 @@
-// pages/dashboard/parent.js
+// /pages/dashboard/parentdashboard
 "use client";
 
 import React from "react";
@@ -22,9 +22,7 @@ import {
   LineChart,
   Line,
 } from "recharts";
-// import StatCard from "@/app/components/statcard";
 import StatCard from "../../../components/statcard";
-// import StatCard from "./";
 
 const ParentDashboard = () => {
   // Dummy data - replace with actual data from your API

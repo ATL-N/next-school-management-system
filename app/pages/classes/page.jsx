@@ -61,13 +61,14 @@ const ClassManagement = () => {
   }
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
-    const authorizedPermissions = ["view class"];
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["view classes"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
@@ -91,7 +92,7 @@ const ClassManagement = () => {
 
   const fetchClasses = async (searchQuery1 = "") => {
     try {
-      setIsLoading(true);
+      // setIsLoading(true);
       setError(null);
 
       let url = "/api/classes/all";
@@ -99,7 +100,6 @@ const ClassManagement = () => {
         url += `?query=${encodeURIComponent(searchQuery1)}`;
       }
       const data = await fetchData(url, "", false);
-      console.log("data", data);
       setClassesData(data);
 
       return data;
@@ -302,6 +302,14 @@ const ClassManagement = () => {
     );
   }
 
+   if (!isAuthorised) {
+     return (
+       <div className="flex items-center text-cyan-700">
+         You are not authorised to be on this page...!
+       </div>
+     );
+   }
+
   return (
     <>
       <div className="pb-16 text-cyan-600">
@@ -335,14 +343,17 @@ const ClassManagement = () => {
         <div className="bg-white p-4 rounded shadow mb-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-cyan-700">Class List</h2>
-            <div className="flex">
-              <button
-                onClick={handleAddClass}
-                className="p-2 bg-cyan-700 text-white rounded hover:bg-cyan-600 flex items-center mr-2"
-              >
-                <FaPlus className="mr-2" /> Create New Class
-              </button>
-            </div>
+            {(session?.user?.role === "admin" ||
+              session?.user?.role === "head teacher") && (
+              <div className="flex">
+                <button
+                  onClick={handleAddClass}
+                  className="p-2 bg-cyan-700 text-white rounded hover:bg-cyan-600 flex items-center mr-2"
+                >
+                  <FaPlus className="mr-2" /> Create New Class
+                </button>
+              </div>
+            )}
           </div>
           {classesData?.classes?.length > 0 ? (
             <div className="overflow-x-auto tableWrap">
@@ -357,10 +368,27 @@ const ClassManagement = () => {
                 handleSearch={handleSearchInputChange}
                 searchTerm={searchQuery}
                 searchPlaceholder="Search by class name, room, or level"
-                displayLinkBtn={true}
+                displayLinkBtn={
+                  session?.user?.role === "admin" ||
+                  session?.user?.role === "head teacher" ||
+                  session?.user?.role === "teaching staff" ||
+                  session?.user?.role === "student"
+                }
+                displayDelBtn={
+                  session?.user?.role === "admin" ||
+                  session?.user?.role === "head teacher"
+                }
                 displaySearchBar={false}
+                // displayActions={
+                //   session?.user?.role === "admin" ||
+                //   session?.user?.role === "head teacher"
+                // }
                 itemDetails="class id."
                 handleOpenLink={handleOpenLink}
+                displayEditBtn={
+                  session?.user?.role === "admin" ||
+                  session?.user?.role === "head teacher"
+                }
               />
             </div>
           ) : (

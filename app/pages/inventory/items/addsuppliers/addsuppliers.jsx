@@ -27,13 +27,14 @@ const Addeditsupplier = ({ id, supplierData, onCancel }) => {
   const [isAuthorised, setIsAuthorised] = useState(false);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
+    const authorizedRoles = ["admin"];
     const authorizedPermissions = ["add supplier", "update supplier"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
@@ -42,11 +43,15 @@ const Addeditsupplier = ({ id, supplierData, onCancel }) => {
   }, [session]);
 
   useEffect(() => {
-    console.log("id", id);
     if (id && supplierData) {
       const initialFormData = {
-        semester_id: id,
+        supply_id: id,
         supplier_name: supplierData.supplier_name,
+        contact_name: supplierData?.contact_name,
+        contact_phone: supplierData?.contact_phone,
+        contact_email: supplierData?.contact_email,
+        address: supplierData?.address,
+        details: supplierData?.details,
       };
 
       setFormData(initialFormData);
@@ -55,14 +60,18 @@ const Addeditsupplier = ({ id, supplierData, onCancel }) => {
   }, [id, supplierData]);
 
   const handleChange = (e) => {
-    // console.log("formData", formData);
     const { name, value } = e.target;
     setFormData((prevState) => ({ ...prevState, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitting supplier form data:", formData);
+
+    if (id && !hasChanges()) {
+      setIsInfoModalOpen(true);
+      // toast.dismiss(toastId);
+      return;
+    }
 
     setIsModalOpen(true); // Open the modal instead of using window.confirm
   };
@@ -73,7 +82,7 @@ const Addeditsupplier = ({ id, supplierData, onCancel }) => {
         // Skip comparison for image_upload as it's handled separately
         if (key === "image_upload") return false;
         return formData[key] !== originalData[key];
-      }) || imageUpload !== null
+      })
     );
   };
 
@@ -89,11 +98,12 @@ const Addeditsupplier = ({ id, supplierData, onCancel }) => {
 
     const supplierData = {
       ...formData,
+      user_id: session?.user?.id,
     };
 
     try {
       const url = id
-        ? `/api/classes/update/${id}`
+        ? `/api/inventory/suppliers/update/${id}`
         : "/api/inventory/suppliers/all";
       const method = id ? "PUT" : "POST";
 
@@ -139,6 +149,7 @@ const Addeditsupplier = ({ id, supplierData, onCancel }) => {
       if (!id) {
         setFormData(initialState);
       }
+      return
     } catch (error) {
       console.error(
         id ? "Error updating supplier:" : "Error adding supplier:",
@@ -153,20 +164,21 @@ const Addeditsupplier = ({ id, supplierData, onCancel }) => {
     } finally {
       setIsLoading(false);
     }
-    setIsLoading(false);
   };
+
+
+  if (isLoading || status==='loading') {
+    return <Loadingpage />;
+  }
 
   if (!isAuthorised) {
     return (
       <div className="flex items-center">
-        You are not authorised to be on this page
+        You are not authorised to be on this page...!
       </div>
     );
   }
 
-  if (isLoading) {
-    return <Loadingpage />;
-  }
   return (
     <>
       <ConfirmModal

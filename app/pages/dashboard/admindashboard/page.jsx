@@ -49,7 +49,6 @@ import TimetableViewer from "../../timetable/viewclassTimetable/viewtimtable";
 import ViewUserHealthRecord from "../../health/viewhealthrecord/viewhealthrecord";
 import AddEditUserHealthIncident from "../../health/addedithealthincident/addhealthincident";
 import Addeditsupplier from "../../inventory/items/addsuppliers/addsuppliers";
-// import Addeditinventoryitem from "../../inventory copy1/addEditInventoryItem/page";
 import Sendnotification from "../../notification/add/addnotification";
 import AddEditExpense from "../../expenses/addeditexpense/addexpense";
 import Link from "next/link";
@@ -82,7 +81,7 @@ const AdminDashboard = () => {
   // const [permissionsData, setPermissionsData] = useState(null);
 
   useEffect(() => {
-    if (session?.user?.roles?.includes("admin")) {
+    if (session?.user?.roles?.includes("admin") || session?.user?.role==='admin' ) {
       setIsAuthorised(true);
     } else {
       setIsAuthorised(false);
@@ -422,8 +421,8 @@ const AdminDashboard = () => {
   const handleAddInvoice = async () => {
     try {
       const [semesterData, classData] = await Promise.all([
-        fetchData("/api/semester/all", "semester"),
-        fetchData("/api/classes/all", "staff"),
+        fetchData("/api/semester/all", "semester", false),
+        fetchData("/api/classes/all", "staff", true),
       ]);
 
       setModalContent(
@@ -660,49 +659,13 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleGenerateReport = () => {
-    setModalContent(
-      <div>
-        <h2 className="text-xl font-bold mb-4">Generate Report</h2>
-        <form onSubmit={(e) => e.preventDefault()} className="text-cyan-500">
-          <select className="w-full p-2 mb-4 border rounded">
-            <option value="">Select Report Type</option>
-            <option value="enrollment">Enrollment Report</option>
-            <option value="financial">Financial Report</option>
-            <option value="performance">Performance Report</option>
-          </select>
-          <input type="date" className="w-full p-2 mb-4 border rounded" />
-          <button
-            type="submit"
-            className="w-full p-2 bg-cyan-500 text-white rounded hover:bg-cyan-600"
-          >
-            Generate Report
-          </button>
-        </form>
-      </div>
-    );
-    setShowModal(true);
-  };
-
   if (!isAuthorised) {
     return (
       <div className="flex items-center">
-        You are not authorised to be on this page
+        You are not authorised to be on this page...!
       </div>
     );
   }
-
-  // if (isLoading) {
-  //   console.log("running toast details");
-  //   setModalContent(
-  //     <div className="flex justify-center items-center h-64">
-  //       <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cyan-700"></div>
-  //     </div>
-  //   );
-  //   setShowModal(true);
-  // }else{
-  //   // setShowModal(false);
-  // }
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
@@ -808,18 +771,18 @@ const AdminDashboard = () => {
                 <FaMoneyBillWave className="mx-auto mb-2 text-2xl" /> Add Event
               </button>
 
-              <button
+              {/* <button
                 onClick={handleGenerateReport}
                 className="p-4 bg-cyan-100 rounded-lg text-center hover:bg-cyan-200 transition duration-300"
               >
                 <FaFileAlt className="mx-auto mb-2 text-2xl" /> Generate Report
-              </button>
+              </button> */}
 
               <button
                 onClick={handleAddInvoice}
                 className="p-4 bg-cyan-100 rounded-lg text-center hover:bg-cyan-200 transition duration-300"
               >
-                <FaFileAlt className="mx-auto mb-2 text-2xl" /> Add Invoice
+                <FaFileAlt className="mx-auto mb-2 text-2xl" /> Add New Bill
               </button>
 
               {/* <button
@@ -829,12 +792,12 @@ const AdminDashboard = () => {
                 <FaFileAlt className="mx-auto mb-2 text-2xl" /> Add Inventory
               </button> */}
 
-              <button
+              {/* <button
                 onClick={handleAddDepartment}
                 className="p-4 bg-cyan-100 rounded-lg text-center hover:bg-cyan-200 transition duration-300"
               >
                 <FaFileAlt className="mx-auto mb-2 text-2xl" /> Add Department
-              </button>
+              </button> */}
 
               <button
                 onClick={handleAddClass}
@@ -913,7 +876,7 @@ const AdminDashboard = () => {
                 onClick={handleViewInvoice}
                 className="p-4 bg-cyan-100 rounded-lg text-center hover:bg-cyan-200 transition duration-300"
               >
-                <FaFileAlt className="mx-auto mb-2 text-2xl" /> View Invoice
+                <FaFileAlt className="mx-auto mb-2 text-2xl" /> View Bill
               </button>
 
               <button

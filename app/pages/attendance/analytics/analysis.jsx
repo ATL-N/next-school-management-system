@@ -30,7 +30,34 @@ const AttendanceAnalytics = ({ attendanceAnalysys }) => {
   const [classes, setClasses] = useState([]);
   const [semesters, setSemesters] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+const [isAuthorised, setIsAuthorised] = useState(true);
+const [activeSemester, setActiveSemester] = useState();
 
+useEffect(() => {
+  const authorizedRoles = ["admin"];
+  const authorizedPermissions = ["view attendance analysis"];
+
+  if (
+    session?.user?.permissions?.some((permission) =>
+      authorizedPermissions.includes(permission)
+    ) ||
+    authorizedRoles.includes(session?.user?.role)
+  ) {
+    setIsAuthorised(true);
+  } else {
+    setIsAuthorised(false);
+  }
+
+  if (
+    status === "authenticated" &&
+    session?.user?.activeSemester?.semester_id
+  ) {
+    setActiveSemester(session?.user?.activeSemester?.semester_id);
+    // setUserId(session?.user?.id);
+  }
+}, [session, status]);
+
+  
   useEffect(() => {
     if (
       status === "authenticated" &&
@@ -89,6 +116,14 @@ const AttendanceAnalytics = ({ attendanceAnalysys }) => {
         <LoadingPage />
       </div>
     );
+
+    if (!isAuthorised) {
+      return (
+        <div className="flex items-center text-cyan-700">
+          You are not authorised to be on this page...!
+        </div>
+      );
+    }
 
   return (
     <div className="space-y-6 text-cyan-800 pb-16">

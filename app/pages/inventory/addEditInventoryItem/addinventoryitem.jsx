@@ -31,7 +31,7 @@ const Addeditinventoryitem = ({id ,classData, semesterData, onCancel }) => {
     } else {
       setIsAuthorised(false);
     }
-  }, [session]);
+  }, [session, status]);
 
   const handleClassChange = (e) => {
     const classId = e.target.value;

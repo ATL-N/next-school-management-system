@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
   FaUserCheck,
@@ -47,6 +46,8 @@ const StudentAttendance = () => {
   const [totalAbsentToday, setTotalAbsentToday] = useState(0);
   const [averageAttendanceForSemester, setAverageAttendanceForSemester] =
     useState(0);
+  const authorizedPermissions2 = ["edit attendance", "take attendance"];
+    const authorizedRoles = ["admin"];
 
   useEffect(() => {
     if (
@@ -59,19 +60,21 @@ const StudentAttendance = () => {
   }, [status, session]);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
-    const authorizedPermissions = ["edit attendance"];
+      const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["view attendance"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
+      console.log("session:", session);
       setActionIsAllowed(true);
     } else {
       setActionIsAllowed(false);
     }
-  }, [session]);
+  }, [session, status]);
 
   const fetchAttendanceData = async (searchQuery1 = "") => {
     // Implement the fetch logic here
@@ -156,6 +159,15 @@ const StudentAttendance = () => {
     "Terms Attendance Rate(%)",
   ];
 
+  if (!actionIsAllowed) {
+    return (
+      <div className="flex items-center text-cyan-700">
+        You are not authorised to be on this page...!
+      </div>
+    );
+  }
+
+
   return (
     <>
       <div className="pb-16 text-cyan-600">
@@ -185,17 +197,22 @@ const StudentAttendance = () => {
           />
         </div>
         <div className="bg-white p-4 rounded shadow mb-6">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col justify-between items-center mb-4 md:flex-row">
             <h2 className="text-xl font-semibold text-cyan-700">
               Attendance Management
             </h2>
             <div className="flex">
-              <button
-                onClick={handleTakeAttendance}
-                className="p-2 bg-cyan-700 text-white rounded hover:bg-cyan-600 flex items-center mr-2"
-              >
-                <FaPlus className="mr-2" /> Take Attendance
-              </button>
+              {(authorizedRoles.includes(session?.user?.role) ||
+                (session?.user?.permissions?.some((permission) =>
+                  authorizedPermissions2.includes(permission)
+                ))) && (
+                  <button
+                    onClick={handleTakeAttendance}
+                    className="p-2 bg-cyan-700 text-white rounded hover:bg-cyan-600 flex items-center mr-2"
+                  >
+                    <FaPlus className="mr-2" /> Take Attendance
+                  </button>
+                )}
               <button
                 onClick={handleAttendanceReport}
                 className="p-2 bg-cyan-700 text-white rounded hover:bg-cyan-600 flex items-center"
@@ -215,7 +232,7 @@ const StudentAttendance = () => {
               searchTerm={searchQuery}
               searchPlaceholder="Search by date or class"
               displaySearchBar={false}
-              displayActions={actionIsAllowed}
+              displayActions={false}
               displayDetailsBtn={false}
               displayDelBtn={false}
               handleEdit={viewClassAttendance}

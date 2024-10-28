@@ -31,15 +31,21 @@ const SemesterManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
-    const authorizedPermissions = ["add semester", "view staff"];
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["view semesters"];
 
-    if (session?.user?.roles?.some((role) => authorizedRoles.includes(role))) {
+    if (
+      session?.user?.permissions?.some((permission) =>
+        authorizedPermissions.includes(permission)
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
+    ) {
       setIsAuthorised(true);
     } else {
       setIsAuthorised(false);
     }
-  }, [session]);
+
+  }, [session, status]);
 
   function weekdaysRemaining(endDate, startDate = new Date()) {
     const endDateObject = new Date(endDate);
@@ -424,6 +430,7 @@ const SemesterManagement = () => {
                 displayDetailsBtn={false}
                 itemDetails="subject id."
                 displaybtnlink="/pages/subjects/details/"
+                displayActions={session?.user?.role==='admin' || session?.user?.role==='head teacher'}
               />
             ) : (
               <div>

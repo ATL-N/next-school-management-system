@@ -44,13 +44,13 @@ const Addeditstudentgradepage = ({
   return (
     <div className="space-y-6 text-cyan-800">
       <h2 className="text-2xl font-bold text-cyan-700">
-        {isUpdating ? "Update Grades" : "Enter Grades"}
+        {isUpdating ? "Enter Grades" : "Enter Grades"}
       </h2>
       <div className="bg-white p-6">
         <form onSubmit={handleSubmit}>
-          <div className="mb-4 flex space-x-4">
+          <div className="mb-4 flex space-x-4 w-full">
             <select
-              className="border-2 border-cyan-300 rounded-md p-2"
+              className="border-2 border-cyan-300 rounded-md p-2 w-full"
               value={selectedClass}
               onChange={handleClassChange}
               required
@@ -63,7 +63,7 @@ const Addeditstudentgradepage = ({
               ))}
             </select>
             <select
-              className="border-2 border-cyan-300 rounded-md p-2"
+              className="border-2 border-cyan-300 rounded-md p-2 w-full"
               value={selectedSubject}
               onChange={handleSubjectChange}
               required
@@ -75,7 +75,7 @@ const Addeditstudentgradepage = ({
                 </option>
               ))}
             </select>
-            <div className="border-2 border-cyan-300 rounded-md p-2">
+            <div className="border-2 border-cyan-300 rounded-md p-2 w-full">
               {semesterData.semester_name || "No semester selected"}
             </div>
           </div>
@@ -138,7 +138,7 @@ const Addeditstudentgradepage = ({
                           </td>
                         ))}
                         <td className="p-2 font-semibold">
-                          {calculateTotalGrade(student.student_id)}
+                          {calculateTotalGrade(student.student_id) || 0}
                         </td>
                       </tr>
                     ))}
@@ -160,12 +160,12 @@ const Addeditstudentgradepage = ({
                   className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 flex items-center"
                 >
                   <FaSave className="mr-2" />
-                  {isUpdating ? "Update Grades" : "Save Grades"}
+                  {isUpdating ? "Save Grades" : "Save Grades"}
                 </button>
               </div>
             </>
           ) : (
-            <div className="text-cyan-600">Select a class to continue</div>
+            <div className="text-cyan-600">Select a class and a subject to continue</div>
           )}
         </form>
       </div>

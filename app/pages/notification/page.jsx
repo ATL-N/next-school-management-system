@@ -11,14 +11,21 @@ import Sendnotification from "./add/addnotification";
 import Loadingpage from "../../components/Loadingpage";
 import NotificationDetails from "./notificationdetails/page";
 import { fetchData } from "../../config/configFile";
+import { useSession } from "next-auth/react";
+import LoadingPage from "../../components/generalLoadingpage";
 
 const NotificationCenter = () => {
+    const { data: session, status } = useSession();
+
   const [showModal, setShowModal] = useState(false);
   const [modalContent, setModalContent] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isAuthorised, setIsAuthorised] = useState(true);
+  const [activeSemester, setActiveSemester] = useState();
+
   let formatedData;
 
   const headerNames = ["ID", "Title", "Type", "Priority", "Sent Date"];
@@ -41,18 +48,45 @@ const NotificationCenter = () => {
     });
   };
 
+
+  useEffect(() => {
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["view notifications"];
+
+    if (
+      session?.user?.permissions?.some((permission) =>
+        authorizedPermissions.includes(permission)
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
+    ) {
+      setIsAuthorised(true);
+    } else {
+      setIsAuthorised(false);
+    }
+
+    if (
+      status === "authenticated" &&
+      session?.user?.activeSemester?.semester_id
+    ) {
+      setActiveSemester(session?.user?.activeSemester?.semester_id);
+      // setUserId(session?.user?.id);
+    }
+  }, [session, status]);
+
+
+
   useEffect(() => {
     fetchNotifications();
 
-    extractStaffData(notifications);
+    // extractStaffData(notifications);
   }, []);
 
   const fetchNotifications = async (searchQuery1 = "") => {
-    setIsLoading(true);
-    const toastId = toast.loading("Fetching notifications...");
+    // setIsLoading(true);
+    // const toastId = toast.loading("Fetching notifications...");
 
     try {
-      setIsLoading(true);
+      // setIsLoading(true);
       setError(null);
 
       let url = "/api/notification/allnotifications";
@@ -73,36 +107,15 @@ const NotificationCenter = () => {
 
       const data = await response.json();
       setNotifications(extractStaffData(data));
-      console.log("formatedData", formatedData);
-
-      // setNotifications(data);
-
-      if (searchQuery1.trim() !== "" && data.length === 0) {
-        setError("No notifications found matching your search.");
-        toast.update(toastId, {
-          render: "No notifications found matching your search.",
-          type: "info",
-          isLoading: false,
-          autoClose: 3000,
-        });
-      } else {
-        toast.update(toastId, {
-          render: `Successfully fetched ${data.length} notifications`,
-          type: "success",
-          isLoading: false,
-          autoClose: 3000,
-        });
-      }
-
       return data;
     } catch (err) {
       setError(err.message);
-      toast.update(toastId, {
-        render: `Error: ${err.message}`,
-        type: "error",
-        isLoading: false,
-        autoClose: 3000,
-      });
+      // toast.update(toastId, {
+      //   render: `Error: ${err.message}`,
+      //   type: "error",
+      //   isLoading: false,
+      //   autoClose: 3000,
+      // });
       throw err;
     } finally {
       setIsLoading(false);
@@ -138,6 +151,22 @@ const NotificationCenter = () => {
     fetchNotifications(e.target.value);
   };
 
+
+  if (isLoading)
+    return (
+      <div>
+        <LoadingPage />
+      </div>
+    );
+
+  // if (!isAuthorised) {
+  //   return (
+  //     <div className="flex items-center text-cyan-700">
+  //       You are not authorised to be on this page...!
+  //     </div>
+  //   );
+  // }
+
   return (
     <>
       <div className="pb-16 text-cyan-600">
@@ -145,7 +174,7 @@ const NotificationCenter = () => {
           Notification Center
         </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           <StatCard
             icon={<FaBell />}
             title="Total Notifications"
@@ -168,12 +197,15 @@ const NotificationCenter = () => {
             <h2 className="text-xl font-semibold text-cyan-700">
               Notifications
             </h2>
+            {(session?.user?.role === "admin" ||
+              session?.user?.role === "head teacher") && (
             <button
               onClick={handleCreateNotification}
               className="p-2 bg-cyan-700 text-white rounded hover:bg-cyan-600 flex items-center"
             >
               <FaPlus className="mr-2" /> Create Notification
             </button>
+            )}
           </div>
 
           <div className="overflow-x-auto tableWrap">
@@ -187,6 +219,7 @@ const NotificationCenter = () => {
                 handleSearch={handleSearchInputChange}
                 searchTerm={searchQuery}
                 searchPlaceholder="Search by title, type, or priority"
+                displayActions={false}
               />
             ) : (
               <Loadingpage />

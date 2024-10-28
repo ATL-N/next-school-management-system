@@ -9,7 +9,7 @@ import LoadingPage from "../../../../components/generalLoadingpage";
 import { submitData } from "../../../../config/configFile";
 import { fetchData } from "../../../../config/configFile";
 
-const AddeditClassitems = ({ onCancel }) => {
+const AddeditClassitems = ({ onCancel, isreadonly = false }) => {
   const { data: session, status } = useSession();
 
   const [selectedClassId, setSelectedClassId] = useState("");
@@ -24,6 +24,7 @@ const AddeditClassitems = ({ onCancel }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [isAuthorised, setIsAuthorised] = useState(false);
   const [error, setError] = useState("");
 
@@ -41,30 +42,51 @@ const AddeditClassitems = ({ onCancel }) => {
   }, [status, session]);
 
   useEffect(() => {
-    const authorizedPermissions = [
-      "add inventory",
-      "update inventory",
-      "add staff",
-    ];
+      const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["assign class items"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
       setIsAuthorised(false);
     }
-  }, [session]);
+  }, [session, status]);
 
   useEffect(() => {
     // Update selectedItemIds whenever inventoryItems changes
     const newSelectedItemIds = new Set(
-      inventoryItems.map((item) => item.item_id).filter(Boolean)
+      inventoryItems?.map((item) => item.item_id).filter(Boolean)
     );
     setSelectedItemIds(newSelectedItemIds);
   }, [inventoryItems]);
+
+  useEffect(() => {
+    if (selectedClassId && selectedSemesterId) {
+      fetchclassinventoryItems(selectedClassId, selectedSemesterId);
+    }
+  }, [selectedClassId, selectedSemesterId]);
+
+  const fetchclassinventoryItems = async (selectedclass, selectedsemester) => {
+    setLoading(true);
+    try {
+      const data = await fetchData(
+        `/api/inventory/getclassitems?class_id=${selectedclass}&semester_id=${selectedsemester}`,
+        "",
+        false
+      );
+      if (data?.items.length > 0) {
+        setInventoryItems(data?.items);
+      }
+      setLoading(false);
+    } catch (err) {
+      console.log("Error incured:", err);
+    }
+  };
 
   const fetchClassandSemester = async () => {
     setIsLoading(true);
@@ -78,7 +100,6 @@ const AddeditClassitems = ({ onCancel }) => {
       setItemList(items);
       setClassData(classdata?.classes);
       setSemesterData(semesterdata);
-      // console.log("procurements", data);
     } catch (err) {
       setError(err.message);
       console.log("error", err);
@@ -111,11 +132,6 @@ const AddeditClassitems = ({ onCancel }) => {
           newIds.delete(newItems[index].item_id);
           return newIds;
         });
-        console.log(
-          "selectedItemIds",
-          selectedItemIds,
-          selectedItemIds.has(value)
-        );
 
         const selectedItem = itemList.find(
           (item) => item.item_id === parseInt(value)
@@ -176,44 +192,42 @@ const AddeditClassitems = ({ onCancel }) => {
     setSelectedItemIds(new Set());
   };
 
+  const checkDuplicateItems = () => {
+    const itemIds = inventoryItems.map((item) => item.item_id);
+    const duplicates = itemIds.filter(
+      (id, index) => itemIds.indexOf(id) !== index
+    );
 
+    if (duplicates.length > 0) {
+      const duplicateNames = duplicates.map(
+        (id) =>
+          itemList.find((item) => item.item_id === parseInt(id))?.item_name ||
+          "Unknown Item"
+      );
+      toast.error(
+        `Duplicate items found: ${duplicateNames.join(
+          ", "
+        )}. Please remove duplicates before submitting.`
+      );
+      return true;
+    }
+    return false;
+  };
 
-   const checkDuplicateItems = () => {
-     const itemIds = inventoryItems.map((item) => item.item_id);
-     const duplicates = itemIds.filter(
-       (id, index) => itemIds.indexOf(id) !== index
-     );
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("inventoryItems", inventoryItems);
+    if (inventoryItems.length === 0) {
+      setIsInfoModalOpen(true);
+      return;
+    }
 
-     if (duplicates.length > 0) {
-       const duplicateNames = duplicates.map(
-         (id) =>
-           itemList.find((item) => item.item_id === parseInt(id))?.item_name ||
-           "Unknown Item"
-       );
-       toast.error(
-         `Duplicate items found: ${duplicateNames.join(
-           ", "
-         )}. Please remove duplicates before submitting.`
-       );
-       return true;
-     }
-     return false;
-   };
+    if (checkDuplicateItems()) {
+      return;
+    }
 
-   const handleSubmit = async (e) => {
-     e.preventDefault();
-     if (inventoryItems.length === 0) {
-       setIsInfoModalOpen(true);
-       return;
-     }
-
-     if (checkDuplicateItems()) {
-       return;
-     }
-
-     setIsModalOpen(true);
-   };
-
+    setIsModalOpen(true);
+  };
 
   const handleConfirm = () => {
     setIsModalOpen(false);
@@ -275,23 +289,30 @@ const AddeditClassitems = ({ onCancel }) => {
       />
 
       {classData?.length > 0 ? (
-        <AddeditClassitemspage
-          classData={classData}
-          semesterData={semesterData}
-          itemsData={itemList}
-          selectedClassId={selectedClassId}
-          selectedSemesterId={selectedSemesterId}
-          handleClassChange={handleClassChange}
-          handleSemesterChange={handleSemesterChange}
-          inventoryItems={inventoryItems}
-          selectedItemIds={selectedItemIds}
-          handleSubmit={handleSubmit}
-          handleInvoiceChange={handleInvoiceChange}
-          addInvoiceItem={addInvoiceItem}
-          removeInvoiceItem={removeInvoiceItem}
-          resetForm={resetForm}
-          onCancel={onCancel}
-        />
+        <>
+          {!loading ? (
+            <AddeditClassitemspage
+              classData={classData}
+              semesterData={semesterData}
+              itemsData={itemList}
+              selectedClassId={selectedClassId}
+              selectedSemesterId={selectedSemesterId}
+              handleClassChange={handleClassChange}
+              handleSemesterChange={handleSemesterChange}
+              inventoryItems={inventoryItems}
+              selectedItemIds={selectedItemIds}
+              handleSubmit={handleSubmit}
+              handleInvoiceChange={handleInvoiceChange}
+              addInvoiceItem={addInvoiceItem}
+              removeInvoiceItem={removeInvoiceItem}
+              resetForm={resetForm}
+              onCancel={onCancel}
+              isreadonly={isreadonly}
+            />
+          ) : (
+            <div>Loading...</div>
+          )}
+        </>
       ) : (
         <LoadingPage />
       )}

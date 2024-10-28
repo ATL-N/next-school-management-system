@@ -3,13 +3,13 @@ import { Pool } from "pg";
 let pool;
 
 function createPool() {
-  console.log("Creating new database pool");
-  console.log("Environment variables:", {
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT,
-  });
+  // console.log("Creating new database pool");
+  // console.log("Environment variables:", {
+  //   user: process.env.DB_USER,
+  //   host: process.env.DB_HOST,
+  //   database: process.env.DB_NAME,
+  //   port: process.env.DB_PORT,
+  // });
 
   return new Pool({
     user: process.env.DB_USER,

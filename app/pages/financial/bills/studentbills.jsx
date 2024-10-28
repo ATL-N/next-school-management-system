@@ -58,12 +58,13 @@ const StudentBills = ({ class_id, semester_id, onClose }) => {
     fetchallData();
 
     const authorizedRoles = ["admin", "head teacher"];
-    const authorizedPermissions = ["delete grading scheme", "add student"];
+    const authorizedPermissions = ["view bills",];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
@@ -584,17 +585,17 @@ const StudentBills = ({ class_id, semester_id, onClose }) => {
       <h2 className="text-2xl font-bold text-cyan-700">Class Bills</h2>
 
       <div className="bg-white shadow-md rounded-lg p-6">
-        <form className="mb-4 flex space-x-4">
-          <div className="mb-4 flex space-x-4">
+        <form className="mb-4 flex space-x-4 w-full">
+          <div className="mb-4 flex space-x-4 w-full">
             {class_id ? (
-              <div className="border-2 border-cyan-300 rounded-md p-2">
+              <div className="border-2 border-cyan-300 rounded-md p-2 w-[50%]">
                 {classesData
                   ?.filter((cls) => cls.class_id === class_id)
                   .map((cls) => cls.class_name || "No class selected")}
               </div>
             ) : (
               <select
-                className="border-2 border-cyan-300 rounded-md p-2"
+                className="border-2 border-cyan-300 rounded-md p-2 w-[50%]"
                 value={selectedClass}
                 onChange={handleClassChange}
                 required
@@ -608,7 +609,7 @@ const StudentBills = ({ class_id, semester_id, onClose }) => {
               </select>
             )}
             {semester_id ? (
-              <div className="border-2 border-cyan-300 rounded-md p-2">
+              <div className="border-2 border-cyan-300 rounded-md p-2 w-full">
                 {semesterData
                   ?.filter((sem) => sem.id === semester_id)
                   .map((sem) => sem.semester_name) || "No semester selected"}
@@ -624,7 +625,7 @@ const StudentBills = ({ class_id, semester_id, onClose }) => {
                   <option value="">Select a semester</option>
                   {semesterData.map((semester) => (
                     <option key={semester?.id} value={semester?.id}>
-                      {semester?.semester_name}
+                      {`${semester?.semester_name} ${(semester?.start_date)}`}
                     </option>
                   ))}
                 </select>

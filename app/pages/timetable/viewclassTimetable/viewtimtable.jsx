@@ -47,7 +47,7 @@ const TimetableViewer = ({
   const handleSemesterChange = async (e) => {
     const semester_id = e.target.value;
     setSelectedSemesterId(semester_id);
-    if ((selectedClassId, semester_id)) {
+    if (selectedClassId && semester_id) {
       await fetchTimetableData(selectedClassId, semester_id);
     } else {
       // Reset timetable data when no class is selected

@@ -8,37 +8,82 @@ import {
   FaGraduationCap,
   FaBell,
   FaDatabase,
+  FaLock,
 } from "react-icons/fa";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+
 
 const SettingsHub = () => {
-  const settingsPages = [
-    {
-      name: "General Settings",
-      icon: <FaCog />,
-      path: "/pages/settings/general",
-    },
-    {
-      name: "Academic Year Settings",
-      icon: <FaCalendarAlt />,
-      path: "/pages/semester",
-    },
-    {
-      name: "Grading Scale Settings",
-      icon: <FaGraduationCap />,
-      path: "/pages/settings/gradingscale",
-    },
-    // {
-    //   name: "Notification Settings",
-    //   icon: <FaBell />,
-    //   path: "/pages/settings/notifications",
-    // },
-    {
-      name: "System Backup and Restore",
-      icon: <FaDatabase />,
-      path: "/pages/settings/backuprestore",
-    },
-  ];
+      const { data: session, status } = useSession();
+let settingsPages = [
+  // {
+  //   name: "General Settings",
+  //   icon: <FaCog />,
+  //   path: "/pages/settings/general",
+  // },
+  {
+    name: "Academic Year Settings",
+    icon: <FaCalendarAlt />,
+    path: "/pages/semester",
+  },
+  {
+    name: "Grading Scale Settings",
+    icon: <FaGraduationCap />,
+    path: "/pages/settings/gradingscale",
+  },
+  // {
+  //   name: "Notification Settings",
+  //   icon: <FaBell />,
+  //   path: "/pages/settings/notifications",
+  // },
+  // {
+  //   name: "System Backup and Restore",
+  //   icon: <FaDatabase />,
+  //   path: "/pages/settings/backuprestore",
+  // },
+  {
+    name: "Change User Password",
+    icon: <FaLock />,
+    path: "/pages/users/changepassword",
+  },
+];;
+
+if (session?.user?.role == "admin" || session?.user?.role == "head teacher"){
+settingsPages = [
+  // {
+  //   name: "General Settings",
+  //   icon: <FaCog />,
+  //   path: "/pages/settings/general",
+  // },
+  {
+    name: "Academic Year Settings",
+    icon: <FaCalendarAlt />,
+    path: "/pages/semester",
+  },
+  {
+    name: "Grading Scale Settings",
+    icon: <FaGraduationCap />,
+    path: "/pages/settings/gradingscale",
+  },
+  // {
+  //   name: "Notification Settings",
+  //   icon: <FaBell />,
+  //   path: "/pages/settings/notifications",
+  // },
+  {
+    name: "System Backup and Restore",
+    icon: <FaDatabase />,
+    path: "/pages/settings/backuprestore",
+  },
+  {
+    name: "Change User Password",
+    icon: <FaLock />,
+    path: "/pages/users/changepassword",
+  },
+];
+}
+  
 
   return (
     <div className="pb-16 text-cyan-600">

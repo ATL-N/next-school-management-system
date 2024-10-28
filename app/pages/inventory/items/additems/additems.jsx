@@ -20,16 +20,17 @@ const Addedititems = ({ id, itemdata, onCancel }) => {
   const [isAuthorised, setIsAuthorised] = useState(false);
 
   useEffect(() => {
+      const authorizedRoles = ["admin"];
+
     const authorizedPermissions = [
-      "add inventory",
-      "update inventory",
-      "add staff",
+      "add items",
     ];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
@@ -116,17 +117,19 @@ const Addedititems = ({ id, itemdata, onCancel }) => {
     setIsLoading(false);
   };
 
+    if (isLoading || status==='loading') {
+      return <Loadingpage />;
+    }
+
+
   if (!isAuthorised) {
     return (
       <div className="flex items-center">
-        You are not authorised to be on this page
+        You are not authorised to be on this page...!
       </div>
     );
   }
 
-  if (isLoading) {
-    return <Loadingpage />;
-  }
 
   return (
     <>

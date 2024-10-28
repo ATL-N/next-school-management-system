@@ -157,7 +157,7 @@ const Addeditfees = ({
             />
 
             <SelectField
-              label="Gender"
+              label="Payment mode/type"
               name="payment_mode"
               icon={<FaVenusMars />}
               value={formData.payment_mode}

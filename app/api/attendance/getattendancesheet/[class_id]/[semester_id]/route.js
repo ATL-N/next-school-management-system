@@ -6,7 +6,6 @@ import db from "../../../../../lib/db";
 export async function GET(req, { params }) {
   try {
     const { class_id, semester_id } = params;
-// console.log('attendancesheet', class_id, semester_id)
 
     if (!class_id || !semester_id) {
       return NextResponse.json(
@@ -15,40 +14,49 @@ export async function GET(req, { params }) {
       );
     }
 
-    // Query to fetch semester dates
+    // Query to fetch semester dates without status check
     const semesterQuery = `
       SELECT start_date, end_date
       FROM semesters
-      WHERE semester_id = $1 AND status != 'deleted'
+      WHERE semester_id = $1
     `;
 
     const semesterResult = await db.query(semesterQuery, [semester_id]);
 
     if (semesterResult.rows.length === 0) {
       return NextResponse.json(
-        { error: "Semester not found or not active" },
+        { error: "Semester not found" },
         { status: 404 }
       );
     }
 
     const { start_date, end_date } = semesterResult.rows[0];
 
-    // Query to fetch attendance data for the class within the semester date range
+    // Modified query to fetch attendance data based on attendance table's class_id
     const attendanceQuery = `
+      WITH distinct_students AS (
+        SELECT DISTINCT 
+          a.student_id,
+          s.first_name || ' ' || s.last_name AS name
+        FROM attendance a
+        JOIN students s ON s.student_id = a.student_id
+        WHERE a.class_id = $1 
+        AND a.semester_id = $4
+      )
       SELECT 
-        s.student_id,
-        s.first_name || ' ' || s.last_name AS name,
+        ds.student_id,
+        ds.name,
         a.attendance_date,
         a.status
       FROM 
-        students s
-      LEFT JOIN attendance a ON a.student_id = s.student_id 
-        AND a.attendance_date BETWEEN $2 AND $3
+        distinct_students ds
+      LEFT JOIN attendance a ON 
+        a.student_id = ds.student_id 
+        AND a.class_id = $1
         AND a.semester_id = $4
-      WHERE 
-        s.class_id = $1 AND s.status = 'active'
+        AND a.attendance_date BETWEEN $2 AND $3
       ORDER BY 
-        s.student_id, a.attendance_date
+        ds.name, a.attendance_date
     `;
 
     const attendanceResult = await db.query(attendanceQuery, [
@@ -82,7 +90,9 @@ export async function GET(req, { params }) {
 
     // Calculate class-wide statistics
     const totalStudents = attendanceData.length;
-    const totalDays = attendanceData[0]?.attendance.length || 0;
+    const totalDays =
+      Math.max(...attendanceData.map((student) => student.attendance.length)) ||
+      0;
     const totalPresent = attendanceData.reduce(
       (sum, student) =>
         sum + student.attendance.filter((a) => a.status === "Present").length,
@@ -99,7 +109,7 @@ export async function GET(req, { params }) {
       0
     );
     const averageAttendanceRate =
-      totalDays > 0
+      totalDays > 0 && totalStudents > 0
         ? Math.round(
             ((totalPresent + totalLate) / (totalStudents * totalDays)) * 100
           )

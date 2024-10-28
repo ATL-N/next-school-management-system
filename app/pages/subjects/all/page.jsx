@@ -2,7 +2,6 @@
 // pages/students/index.js
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
@@ -10,7 +9,6 @@ import { FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 import CustomTable from "../../../components/listtableForm";
 
 const CoursesListPage = () => {
-  const router = useRouter();
   const [students, setStudents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);

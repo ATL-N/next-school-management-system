@@ -17,10 +17,10 @@ const ItemMovement = ({ onCancel }) => {
     recipient_name: "",
     recipient_phone: null,
     comments: null,
-    movement_type: '',
+    movement_type: "",
   };
 
-  const [formData, setFormData] = useState(initialState)
+  const [formData, setFormData] = useState(initialState);
   const [supplyType, setSupplyType] = useState("");
   const [selectedstaffId, setSelectedstaffId] = useState("");
   const [inventoryItems, setInventoryItems] = useState([]);
@@ -50,16 +50,14 @@ const ItemMovement = ({ onCancel }) => {
   }, [status, session]);
 
   useEffect(() => {
-    const authorizedPermissions = [
-      "add inventory",
-      "update inventory",
-      "add staff",
-    ];
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["move items"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
@@ -115,13 +113,13 @@ const ItemMovement = ({ onCancel }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevState) => ({ ...prevState, [name]: value }));
-    console.log('formData', formData)
+    console.log("formData", formData);
   };
 
   const handlestaffChange = (e) => {
     const staff_id = e.target.value;
     setSelectedstaffId(staff_id);
-    console.log(staff_id)
+    console.log(staff_id);
     // setInventoryItems([]);
     // setSelectedItemIds(new Set());
   };
@@ -174,7 +172,7 @@ const ItemMovement = ({ onCancel }) => {
       {
         item_id: "",
         quantity: "",
-        item_status: '',
+        item_status: "",
 
         // unit_price: "",
         // total_price: "",
@@ -203,44 +201,41 @@ const ItemMovement = ({ onCancel }) => {
     setSelectedItemIds(new Set());
   };
 
+  const checkDuplicateItems = () => {
+    const itemIds = inventoryItems.map((item) => item.item_id);
+    const duplicates = itemIds.filter(
+      (id, index) => itemIds.indexOf(id) !== index
+    );
 
+    if (duplicates.length > 0) {
+      const duplicateNames = duplicates.map(
+        (id) =>
+          itemList.find((item) => item.item_id === parseInt(id))?.item_name ||
+          "Unknown Item"
+      );
+      toast.error(
+        `Duplicate items found: ${duplicateNames.join(
+          ", "
+        )}. Please remove duplicates before submitting.`
+      );
+      return true;
+    }
+    return false;
+  };
 
-   const checkDuplicateItems = () => {
-     const itemIds = inventoryItems.map((item) => item.item_id);
-     const duplicates = itemIds.filter(
-       (id, index) => itemIds.indexOf(id) !== index
-     );
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (inventoryItems.length === 0) {
+      setIsInfoModalOpen(true);
+      return;
+    }
 
-     if (duplicates.length > 0) {
-       const duplicateNames = duplicates.map(
-         (id) =>
-           itemList.find((item) => item.item_id === parseInt(id))?.item_name ||
-           "Unknown Item"
-       );
-       toast.error(
-         `Duplicate items found: ${duplicateNames.join(
-           ", "
-         )}. Please remove duplicates before submitting.`
-       );
-       return true;
-     }
-     return false;
-   };
+    if (checkDuplicateItems()) {
+      return;
+    }
 
-   const handleSubmit = async (e) => {
-     e.preventDefault();
-     if (inventoryItems.length === 0) {
-       setIsInfoModalOpen(true);
-       return;
-     }
-
-     if (checkDuplicateItems()) {
-       return;
-     }
-
-     setIsModalOpen(true);
-   };
-
+    setIsModalOpen(true);
+  };
 
   const handleConfirm = () => {
     setIsModalOpen(false);
@@ -277,7 +272,7 @@ const ItemMovement = ({ onCancel }) => {
   if (!isAuthorised) {
     return (
       <div className="flex items-center">
-        You are not authorised to be on this page
+        You are not authorised to be on this page...!
       </div>
     );
   }

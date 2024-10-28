@@ -24,6 +24,7 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+  text-transform: capitalize;
 }
 
 @layer utilities {
@@ -174,21 +175,20 @@ td {
 }
 
 thead {
-  background-color: #0e7490;
+  /* background-color: #0e7490; */
   color: #fff;
 }
-th{
+th {
   background-color: #0e7490;
 }
 
-.height-45vh{
+.height-45vh {
   height: 45vh;
 }
 
-.margin-0{
+.margin-0 {
   margin: 0;
 }
-
 
 .loader {
   border: 16px solid #f3f3f3; /* Light grey */
@@ -232,21 +232,24 @@ th{
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Add this to your globals.css or create a new CSS file */
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;  /* Chrome, Safari and Opera */
+  display: none; /* Chrome, Safari and Opera */
 }
 
-.w_full{
+.w_full {
   width: 100%;
 }
-

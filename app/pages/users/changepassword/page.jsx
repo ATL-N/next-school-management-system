@@ -85,7 +85,7 @@ const ChangePassword = () => {
 
       // Password change successful
       console.log("Password changed successfully");
-      router.push("/dashboard"); // Redirect to dashboard or appropriate page
+      router.push("/"); // Redirect to dashboard or appropriate page
     } catch (error) {
       toast.update(toastId, {
         render: "Error changing password",

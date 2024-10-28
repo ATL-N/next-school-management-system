@@ -10,10 +10,6 @@ import ConfirmModal from "../../../components/modal/confirmModal";
 const AssignUserRoles = ({ onCancel, id, usersData = [], rolesData = [] }) => {
   const { data: session, status } = useSession();
 
-  useEffect(() => {
-    console.log("usersData", usersData);
-    setIsLoading(false);
-  }, []);
   const [isLoading, setIsLoading] = useState(false);
   const [originalPermissions, setOriginalPermissions] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,6 +18,38 @@ const AssignUserRoles = ({ onCancel, id, usersData = [], rolesData = [] }) => {
     selectedUser: null,
     selectedRoles: [],
   });
+
+  const [isAuthorised, setIsAuthorised] = useState(true);
+  const [activeSemester, setActiveSemester] = useState();
+
+  useEffect(() => {
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["assign roles"];
+
+    if (
+      session?.user?.permissions?.some((permission) =>
+        authorizedPermissions.includes(permission)
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
+    ) {
+      setIsAuthorised(true);
+    } else {
+      setIsAuthorised(false);
+    }
+
+    if (
+      status === "authenticated" &&
+      session?.user?.activeSemester?.semester_id
+    ) {
+      setActiveSemester(session?.user?.activeSemester?.semester_id);
+      // setUserId(session?.user?.id);
+    }
+  }, [session, status]);
+
+  useEffect(() => {
+    console.log("usersData", usersData);
+    setIsLoading(false);
+  }, []);
 
   const handleUserChange = async (user) => {
     console.log("user", user);
@@ -137,16 +165,17 @@ const AssignUserRoles = ({ onCancel, id, usersData = [], rolesData = [] }) => {
     }
   };
 
-  if (session?.user?.role != "admin" || status === "unauthenticated") {
-    return (
-      <div className="flex items-centformData.role_nameer">
-        you are not authorised to perform this action
-      </div>
-    );
+
+  if (isLoading || status==='loading') {
+    return <Loadingpage />;
   }
 
-  if (isLoading) {
-    return <Loadingpage />;
+  if (!isAuthorised) {
+    return (
+      <div className="flex items-center text-cyan-700">
+        You are not authorised to be on this page...!
+      </div>
+    );
   }
 
   return (

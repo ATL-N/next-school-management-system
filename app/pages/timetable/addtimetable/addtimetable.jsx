@@ -5,6 +5,7 @@ import EnterTimetable from "../../../components/timetablecomponent/AddTimetableE
 import InfoModal from "../../../components/modal/infoModal";
 import ConfirmModal from "../../../components/modal/confirmModal";
 import { useSession } from "next-auth/react";
+import { fetchData } from "../../../config/configFile";
 
 const TimetableManager = ({ id, classesData, subjectsData, semesterData, staffData }) => {
   const { data: session, status } = useSession();
@@ -18,6 +19,9 @@ const TimetableManager = ({ id, classesData, subjectsData, semesterData, staffDa
   const [periods, setPeriods] = useState([
     { number: 1, startTime: "08:00", endTime: "09:00" },
   ]);
+   const [error, setError] = useState(null);
+   const [loading, setLoading] = useState(false);
+
 
   const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
@@ -31,13 +35,37 @@ const TimetableManager = ({ id, classesData, subjectsData, semesterData, staffDa
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
       setIsAuthorised(false);
     }
   }, [session]);
+
+    useEffect(() => {
+      if (selectedClassId && selectedSemesterId) {
+        fetchTimetableData(selectedClassId, selectedSemesterId);
+      }
+    }, [selectedClassId, selectedSemesterId]);
+
+  const fetchTimetableData = async (classId, semester_id) => {
+    setLoading(true);
+    const url = `/api/timetable/getclasstimetable/${classId}/${semester_id}`;
+    const data = await fetchData(url, "timetable", false);
+
+    if (data?.periods?.length > 0) {
+      console.log('data')
+      setTimetable(data.timetable);
+      setPeriods(data.periods);
+      // // setDaysOfWeek(data.daysOfWeek);
+      setLoading(false);
+    } else {
+      setError("Failed to load timetable. Please try again.");
+      setLoading(false);
+    }
+  };
 
   const handleClassChange = (e) => {
     setSelectedClassId(e.target.value);
@@ -84,7 +112,7 @@ const TimetableManager = ({ id, classesData, subjectsData, semesterData, staffDa
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitting timetable form data:", selectedSemesterId);
+    console.log("Submitting timetable form data:", timetable, periods);
 
     setIsModalOpen(true); // Open the modal instead of using window.confirm
   };
@@ -216,6 +244,7 @@ const TimetableManager = ({ id, classesData, subjectsData, semesterData, staffDa
         message={"No changes detected. Please make changes before updating."}
       />
 
+{!loading ? 
       <EnterTimetable
         classesData={classesData}
         semesterData={semesterData}
@@ -235,7 +264,8 @@ const TimetableManager = ({ id, classesData, subjectsData, semesterData, staffDa
         handleSubmit={handleSubmit}
         resetTimetable={resetTimetable}
         handleSemesterChange={handleSemesterChange}
-      />
+      /> : <div>Loading...</div>
+}
     </>
   );
 };

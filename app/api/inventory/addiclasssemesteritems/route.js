@@ -2,7 +2,6 @@ import db from "../../../lib/db";
 import { NextResponse } from "next/server";
 
 // /api/inventory/addiclasssemesteritems
-
 export async function POST(req) {
   try {
     const body = await req.json();
@@ -24,6 +23,17 @@ export async function POST(req) {
     try {
       await db.query("BEGIN");
 
+      // Delete existing class items for the given class_id and semester_id
+      const deleteQuery = `
+        DELETE FROM class_items
+        WHERE class_id = $1 AND semester_id = $2
+      `;
+      await db.query(deleteQuery, [class_id, semester_id]);
+      console.log(
+        `Deleted existing class items for class_id: ${class_id} and semester_id: ${semester_id}`
+      );
+
+      // Insert new class items
       for (const inventory of inventory_items) {
         const { item_id, quantity_per_student, unit_price, total_price } =
           inventory;
@@ -36,32 +46,27 @@ export async function POST(req) {
           );
         }
 
-        const upsertQuery = `
+        const insertQuery = `
           INSERT INTO class_items (class_id, item_id, semester_id, quantity_per_student, supplied_by)
           VALUES ($1, $2, $3, $4, $5)
-          ON CONFLICT (class_id, item_id, semester_id)
-          DO UPDATE SET
-            quantity_per_student = EXCLUDED.quantity_per_student,
-            supplied_by = EXCLUDED.supplied_by
           RETURNING class_item_id;
         `;
 
-        const upsertResult = await db.query(upsertQuery, [
+        const insertResult = await db.query(insertQuery, [
           class_id,
           item_id,
           semester_id,
           quantity_per_student,
           user_id,
         ]);
-        const class_item_id = upsertResult.rows[0].class_item_id;
 
-        console.log(`Upserted class_item_id: ${class_item_id}`);
+        const class_item_id = insertResult.rows[0].class_item_id;
+        console.log(`Inserted class_item_id: ${class_item_id}`);
       }
 
       await db.query("COMMIT");
-
       return NextResponse.json(
-        { message: "Class items added or updated successfully" },
+        { message: "Class items deleted and new items added successfully" },
         { status: 201 }
       );
     } catch (error) {
@@ -69,7 +74,7 @@ export async function POST(req) {
       throw error;
     }
   } catch (error) {
-    console.error("Error in Class item addition/update:", error);
+    console.error("Error in Class item deletion and addition:", error);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
       { status: 500 }

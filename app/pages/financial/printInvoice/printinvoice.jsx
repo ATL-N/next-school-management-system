@@ -10,42 +10,78 @@ const printInvoice = (invoiceData) => {
     totalAmount,
     dateIssued,
   } = invoiceData;
-   const doc = new jsPDF({
-     format: "a5",
-     orientation: "landscape",
-     unit: "mm",
-   });
 
-  // Create a new jsPDF instance
-//   const doc = new jsPDF();
+  const institutionName = 'Name Of School'
+  const institutionEmail = "school@gmail.com";
+  const institutionPhone = "0547323204";
+
+  const doc = new jsPDF({
+    format: "a5",
+    orientation: "landscape",
+    unit: "mm",
+  });
 
   // Set font
   doc.setFont("helvetica");
 
-  // Add logo
-  const logoUrl = "/favicon.ico"; // Adjust this path if necessary
-  const logoSize = 20; // Size of the logo in mm
+  // Colors
+  const primaryColor = "#555555";
+  const secondaryColor = "#777777";
 
-  // Load the image
+  // Institution details
+  doc.setFontSize(16);
+  doc.setTextColor(primaryColor);
+  doc.text(institutionName, 10, 15);
+  doc.setFontSize(10);
+  doc.setTextColor(secondaryColor);
+  doc.text(institutionEmail, 10, 22);
+  doc.text(institutionPhone, 10, 28);
+
+  // Logo
+  const logoUrl = "/favicon.ico";
+  const logoSize = 15;
   const img = new Image();
   img.src = logoUrl;
 
   img.onload = function () {
-    // Add the image to the PDF
-    doc.addImage(img, "PNG", 10, 10, logoSize, logoSize);
+    doc.addImage(img, "PNG", 190, 10, logoSize, logoSize);
+    continueRendering();
+  };
 
-    // Add header
-    doc.setFontSize(22);
-    doc.text("Invoice", 105, 25, { align: "center" });
+  img.onerror = function () {
+    console.error("Error loading the logo image");
+    continueRendering();
+  };
 
-    // Add invoice details
+  function continueRendering() {
+    // Invoice title
+    doc.setFontSize(18);
+    doc.setTextColor(primaryColor);
+    doc.text("BILL", 105, 25, { align: "center" });
+
+    // Subtle separator line
+    doc.setDrawColor(secondaryColor);
+    doc.setLineWidth(0.5);
+    doc.line(10, 32, 200, 32);
+
+    // Invoice details
+    doc.setFontSize(10);
+    doc.setTextColor(secondaryColor);
+    doc.text(`Invoice Number: ${invoiceNumber}`, 10, 40);
+    doc.text(`Date Issued: ${dateIssued}`, 10, 46);
+    doc.text(`Class: ${className}`, 10, 52);
+    doc.text(`Semester: ${semester}`, 10, 58);
+
+    // Bill To section
     doc.setFontSize(12);
-    doc.text(`Invoice Number: ${invoiceNumber}`, 20, 45);
-    doc.text(`Date Issued: ${dateIssued}`, 20, 55);
-    doc.text(`Class: ${className}`, 20, 65);
-    doc.text(`Semester: ${semester}`, 20, 75);
+    doc.setTextColor(primaryColor);
+    doc.text("Bill To:", 150, 40);
+    doc.setFontSize(10);
+    doc.setTextColor(secondaryColor);
+    doc.text("Student Name", 150, 46);
+    doc.text("Student ID", 150, 52);
 
-    // Add invoice items table
+    // Invoice items table
     const tableColumn = ["Description", "Amount (GHC)"];
     const tableRows = invoiceItems.map((item) => [
       item.description,
@@ -53,33 +89,45 @@ const printInvoice = (invoiceData) => {
     ]);
 
     doc.autoTable({
-      startY: 85,
+      startY: 65,
       head: [tableColumn],
       body: tableRows,
+      theme: "plain",
+      headStyles: {
+        fillColor: "#f3f3f3",
+        textColor: primaryColor,
+        fontStyle: "bold",
+      },
+      columnStyles: { 1: { halign: "right" } },
+      styles: { fontSize: 9 },
     });
 
-    // Add total amount
-    const finalY = doc.lastAutoTable.finalY || 85;
-    doc.text(`Total Amount: GHC ${totalAmount.toFixed(2)}`, 20, finalY + 20);
+    // Total amount
+    const finalY = doc.lastAutoTable.finalY || 65;
+    doc.setFontSize(12);
+    doc.setTextColor(primaryColor);
+    doc.text("Total:", 150, finalY + 10);
+    doc.setFontSize(12);
+    doc.text(`GHC ${totalAmount.toFixed(2)}`, 200, finalY + 10, {
+      align: "right",
+    });
 
-    // Add footer
-    doc.setFontSize(10);
-    doc.text(
-      "Please do your best to pay the fees on time. For any queries, please contact the school administration.",
-      20,
-      finalY + 40
-    );
+    // Footer
+    doc.setTextColor(secondaryColor);
+    doc.setFontSize(8);
+    const footerText =
+      "Please pay the fees on time. For queries, contact the school administration.";
+    doc.text(footerText, 105, 135, { align: "center", maxWidth: 180 });
+
+    // Subtle bottom line
+    doc.setDrawColor(secondaryColor);
+    doc.setLineWidth(0.5);
+    doc.line(10, 140, 200, 140);
 
     // Open print dialog
     doc.autoPrint();
     window.open(doc.output("bloburl"), "_blank");
-  };
-
-  img.onerror = function () {
-    console.error("Error loading the logo image");
-    // Proceed with PDF generation without the logo
-    // (You can copy the PDF generation code here, excluding the logo part)
-  };
+  }
 };
 
 export default printInvoice;

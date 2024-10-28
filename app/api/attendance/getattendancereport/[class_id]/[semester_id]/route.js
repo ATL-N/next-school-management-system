@@ -1,14 +1,9 @@
 import { NextResponse } from "next/server";
 import db from "../../../../../lib/db";
 
-// /api/attendance/getattendancereport/1/1
-
-
 export async function GET(req, { params }) {
   try {
     const { class_id, semester_id } = params;
-    // const { searchParams } = new URL(req.url);
-    // const semester_id = searchParams.get("semester_id");
 
     if (!class_id || !semester_id) {
       return NextResponse.json(
@@ -21,40 +16,51 @@ export async function GET(req, { params }) {
     const semesterQuery = `
       SELECT start_date, end_date
       FROM semesters
-      WHERE semester_id = $1 AND status = 'active'
+      WHERE semester_id = $1
     `;
 
     const semesterResult = await db.query(semesterQuery, [semester_id]);
 
     if (semesterResult.rows.length === 0) {
       return NextResponse.json(
-        { error: "Semester not found or not active" },
+        { error: "Semester not found" },
         { status: 404 }
       );
     }
 
     const { start_date, end_date } = semesterResult.rows[0];
 
-    // Query to fetch attendance data for the class within the semester date range
+    // Modified query to fetch historical attendance data based on semester enrollment
     const attendanceQuery = `
+      WITH semester_students AS (
+        SELECT DISTINCT 
+          s.student_id,
+          s.first_name || ' ' || s.last_name AS name,
+          s.student_id AS id
+        FROM 
+          students s
+        INNER JOIN attendance a ON a.student_id = s.student_id
+        WHERE 
+          a.class_id = $1 
+          AND a.semester_id = $4
+      )
       SELECT 
-        s.student_id,
-        s.first_name || ' ' || s.last_name AS name,
-        s.student_id AS id,
+        ss.student_id,
+        ss.name,
+        ss.id,
         SUM(CASE WHEN a.status = 'present' THEN 1 ELSE 0 END) AS present,
         SUM(CASE WHEN a.status = 'absent' THEN 1 ELSE 0 END) AS absent,
         SUM(CASE WHEN a.status = 'late' THEN 1 ELSE 0 END) AS late
       FROM 
-        students s
-      LEFT JOIN attendance a ON a.student_id = s.student_id 
+        semester_students ss
+      LEFT JOIN attendance a ON a.student_id = ss.student_id 
         AND a.attendance_date BETWEEN $2 AND $3
         AND a.semester_id = $4
-      WHERE 
-        s.class_id = $1 AND s.status = 'active'
+        AND a.class_id = $1
       GROUP BY 
-        s.student_id, s.first_name, s.last_name, s.student_id
+        ss.student_id, ss.name, ss.id
       ORDER BY 
-        s.student_id
+        ss.student_id
     `;
 
     const attendanceResult = await db.query(attendanceQuery, [
@@ -78,7 +84,7 @@ export async function GET(req, { params }) {
       return {
         id: row.student_id,
         name: row.name,
-        studentId: row.studentid,
+        studentId: row.id,
         present: parseInt(row.present),
         absent: parseInt(row.absent),
         late: parseInt(row.late),

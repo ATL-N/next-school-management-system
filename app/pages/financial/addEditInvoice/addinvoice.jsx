@@ -22,13 +22,14 @@ const Addeditinvoice = ({ classData, semesterData, onCancel }) => {
   const [invoiceData, setInvoiceData] = useState(null);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
-    const authorizedPermissions = ["add invoice", "update invoice"];
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["add bills"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
@@ -144,7 +145,7 @@ const Addeditinvoice = ({ classData, semesterData, onCancel }) => {
   if (!isAuthorised) {
     return (
       <div className="flex items-center">
-        You are not authorised to be on this page
+        You are not authorised to be on this page...!
       </div>
     );
   }

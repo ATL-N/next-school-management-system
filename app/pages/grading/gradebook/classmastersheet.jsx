@@ -42,7 +42,7 @@ const ClassMasterSheet = ({ onClose, onSave, userRole, class_id }) => {
   }, [status, session]);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
+    const authorizedRoles = ["admin"];
     const authorizedPermissions = ["view masters sheet", "add student"];
 
     if (
@@ -221,16 +221,16 @@ const ClassMasterSheet = ({ onClose, onSave, userRole, class_id }) => {
         Class Masters sheet
       </h2>
       <form onSubmit={handleSubmit}>
-        <div className="mb-4 flex space-x-4">
+        <div className="mb-4 flex space-x-4 w-full">
           {class_id ? (
-            <div className="border-2 border-cyan-300 rounded-md p-2">
+            <div className="border-2 border-cyan-300 rounded-md p-2 w-full">
               {classesData
                 ?.filter((cls) => cls.class_id === class_id)
                 .map((cls) => cls.class_name || "No class selected")}
             </div>
           ) : (
             <select
-              className="border-2 border-cyan-300 rounded-md p-2"
+              className="border-2 border-cyan-300 rounded-md p-2 w-full"
               value={selectedClass}
               onChange={handleClassChange}
               required
@@ -245,7 +245,7 @@ const ClassMasterSheet = ({ onClose, onSave, userRole, class_id }) => {
           )}
 
           <select
-            className="border-2 border-cyan-300 rounded-md p-2"
+            className="border-2 border-cyan-300 rounded-md p-2 w-full"
             value={selectedSemester}
             onChange={handleSemesterChange}
             required

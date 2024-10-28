@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { FaClipboardList } from "react-icons/fa";
+import { FaPrint } from "react-icons/fa";
 import CustomTable from "../../../components/listtableForm";
 import { fetchData } from "../../../config/configFile";
 import LoadingPage from "../../../components/generalLoadingpage";
 import { useSession } from "next-auth/react";
+import ReceiptGenerator from "../feereceipt/feereceipt";
+
 
 const StudentPaymentHistory = ({ student_id, onClose }) => {
   const { data: session, status } = useSession();
@@ -18,6 +20,10 @@ const StudentPaymentHistory = ({ student_id, onClose }) => {
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSemester, setActiveSemester] = useState();
+  const [isAuthorised, setIsAuthorised] = useState(true);
+  const [receiptData, setReceiptData] = useState(null);
+  const [showReceipt, setShowReceipt] = useState(false);
+
 
   useEffect(() => {
     if (
@@ -31,6 +37,32 @@ const StudentPaymentHistory = ({ student_id, onClose }) => {
       // setIsLoading(false);
     }
   }, [status, session, student_id]);
+
+
+  useEffect(() => {
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["view student's payment history"];
+
+    if (
+      session?.user?.permissions?.some((permission) =>
+        authorizedPermissions.includes(permission)
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
+    ) {
+      setIsAuthorised(true);
+    } else {
+      setIsAuthorised(false);
+    }
+
+    if (
+      status === "authenticated" &&
+      session?.user?.activeSemester?.semester_id
+    ) {
+      setActiveSemester(session?.user?.activeSemester?.semester_id);
+      // setUserId(session?.user?.id);
+    }
+  }, [session, status]);
+
 
   const fetchStudentInfo = async () => {
     try {
@@ -88,6 +120,25 @@ const StudentPaymentHistory = ({ student_id, onClose }) => {
     }
   };
 
+    const handlePrintFee = async (collection_id) => {
+      try {
+        const receiptdata = paymentHistory?.filter(
+          (payment) => payment.collection_id === collection_id
+        );
+        console.log("receiptData", receiptdata);
+        setReceiptData(receiptdata[0]);
+        setShowReceipt(true);
+        // setModalContent(
+        //   <ReceiptGenerator
+        //     receiptData={receiptData}
+        //     onClose={setShowModal(false)}
+        //   />
+        // );
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
   const headerNames = [
     "ID",
     "Old Balance(GHC)",
@@ -99,6 +150,14 @@ const StudentPaymentHistory = ({ student_id, onClose }) => {
 
   if (status === "loading" || isLoading) {
     return <LoadingPage />;
+  }
+
+  if (!isAuthorised) {
+    return (
+      <div className="flex items-center text-cyan-700">
+        You are not authorised to be on this page...!
+      </div>
+    );
   }
 
   return (
@@ -130,13 +189,14 @@ const StudentPaymentHistory = ({ student_id, onClose }) => {
               height="20vh"
               handleSearch={handleSearchInputChange}
               searchTerm={searchQuery}
-              editIcon={<FaClipboardList />}
-              editTitle="View payment details"
+              editTitle="Print receipt for fees with id: "
               searchPlaceholder="Search by recipient name"
               displayDetailsBtn={false}
               displayDelBtn={false}
-              displayActions={false}
+              displayActions={true}
               displaySearchBar={false}
+              handleEdit={handlePrintFee}
+              editIcon={<FaPrint />}
             />
           )}
         </div>
@@ -149,6 +209,16 @@ const StudentPaymentHistory = ({ student_id, onClose }) => {
           Close
         </button>
       </div>
+
+      {showReceipt && (
+        <ReceiptGenerator
+          receiptData={receiptData}
+          onClose={() => {
+            setShowReceipt(false);
+            // onCancel();
+          }}
+        />
+      )}
     </div>
   );
 };

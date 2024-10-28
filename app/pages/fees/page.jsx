@@ -71,13 +71,14 @@ const FeesManagement = () => {
   }, [status, session]);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
-    const authorizedPermissions = ["delete event", "view staff"];
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["view fees"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
@@ -453,7 +454,7 @@ const FeesManagement = () => {
   if (!isAuthorised) {
     return (
       <div className="flex items-center">
-        You are not authorised to be on this page
+        You are not authorised to be on this page...!
       </div>
     );
   }
@@ -533,6 +534,10 @@ const FeesManagement = () => {
               />
             )}
           </div>
+          <div className="pt-2 text-red-500">
+            *All negative(-) values are amount owed by the pupil.{" "}
+            <p className="text-green-600">*Positive values are carry forwards</p>
+          </div>
         </div>
         <div className="bg-white p-4 rounded shadow mb-6 text-cyan-500">
           <div className="flex justify-between items-center mb-4">
@@ -596,6 +601,7 @@ const FeesManagement = () => {
                 displayDelBtn={false}
                 displayEvaluationBtn={false}
                 evalTitle="View expense history for "
+                displayActions={false}
                 // evaluationIcon={<FaClipboardList />}
               />
             )}

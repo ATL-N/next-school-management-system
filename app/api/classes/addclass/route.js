@@ -10,9 +10,9 @@ export async function POST(req) {
     const body = await req.json();
     console.log("body in addclassapi", body);
 
-    const { class_name, class_level, staff_id, room_number, capacity } = body;
+    const { class_name, class_level, staff_id, room_number, capacity, user_id } = body;
 
-    if (!class_name || !class_level || !staff_id || !room_number) {
+    if (!class_name || !class_level || !staff_id) {
       await db.query("ROLLBACK");
       return NextResponse.json(
         { error: "Missing required fields" },
@@ -73,7 +73,7 @@ export async function POST(req) {
         notification_message,
         notification_type,
         priority,
-        sender_id,
+        user_id,
       ]);
 
       await db.query("COMMIT");

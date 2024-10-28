@@ -38,6 +38,7 @@ const ItemManagement = () => {
   const [lowStockItems, setLowStockItems] = useState([]);
   const [searchProcurementQuery, setSearchProcurementQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDelAuthorised, setIsDelAuthorised] = useState(true);
 
   const headerNames = ["ID", "Name", "Category", "Quantity", "Unit"];
 
@@ -70,23 +71,48 @@ const ItemManagement = () => {
   ];
 
   useEffect(() => {
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["view stock items"];
+    const authorizedPermissions2 = ["delete supply items"];
+
+    if (
+      session?.user?.permissions?.some((permission) =>
+        authorizedPermissions.includes(permission)
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
+    ) {
+      setIsAuthorised(true);
+    } else {
+      setIsAuthorised(false);
+    }
+
     if (session?.user?.roles?.includes("admin")) {
       setIsAuthorised(true);
     } else {
       setIsAuthorised(false);
     }
 
-    // console.log("session roles", session?.user?.roles[0]);
-  }, [session]);
+    if (
+      session?.user?.permissions?.some((permission) =>
+        authorizedPermissions2.includes(permission)
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
+    ) {
+      setIsDelAuthorised(true);
+    } else {
+      setIsDelAuthorised(false);
+    }
+  }, [session, status]);
 
   useEffect(() => {
-    const authorizedRoles = ["admin", "head teacher"];
-    const authorizedPermissions = ["delete item", "view stock items"];
+    const authorizedRoles = ["admin"];
+    const authorizedPermissions = ["edit procurements"];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsDeleteAuthorised(true);
     } else {
@@ -405,6 +431,7 @@ const ItemManagement = () => {
                 handleSearch={handleSearchInputChange}
                 displayDetailsBtn={false}
                 editTitle="Edit item"
+                displayActions={false}
               />
             </div>
           )}
@@ -489,19 +516,20 @@ const ItemManagement = () => {
                             );
                           })}
                           <td className="px-6 py-4 whitespace-nowrap text-lg font-medium flex text-right">
-                            <button
-                              onClick={() =>
-                                handleEditProcurementDetails(
-                                  item.supplier_id,
-                                  item.procurement_date
-                                )
-                              }
-                              className="mr-6 text-xl grid text-cyan-900 hover:text-cyan-500 hover:bg-white"
-                              title={`Edit procurements made on ${item.procurement_date} by ${item.supplier_name}`}
-                            >
-                              <FaEdit />
-                            </button>
-
+                            {isDeleteAuthorised && (
+                              <button
+                                onClick={() =>
+                                  handleEditProcurementDetails(
+                                    item.supplier_id,
+                                    item.procurement_date
+                                  )
+                                }
+                                className="mr-6 text-xl grid text-cyan-900 hover:text-cyan-500 hover:bg-white"
+                                title={`Edit procurements made on ${item.procurement_date} by ${item.supplier_name}`}
+                              >
+                                <FaEdit />
+                              </button>
+                            )}
                             <button
                               onClick={() =>
                                 handleProcurementDetails(

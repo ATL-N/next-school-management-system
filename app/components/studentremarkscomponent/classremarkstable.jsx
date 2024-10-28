@@ -16,6 +16,7 @@ const ClassRemarksTable = ({ onClose, onSave, userRole, class_id }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthorised, setIsAuthorised] = useState(true);
   const [isHeadTeacher, setIsHeadTeacher] = useState(false);
+  const [isTeacher, setIsTeacher] = useState(false);
   const [semesterData, setSemesterData] = useState([]);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -38,31 +39,39 @@ const ClassRemarksTable = ({ onClose, onSave, userRole, class_id }) => {
 
   useEffect(() => {
     const authorizedRoles = ["admin", "head teacher"];
+    const authorizedRoles2 = ['teaching staff', 'staff'];
     const authorizedPermissions = [
       "add remarks",
       "update remarks",
-      "add student",
     ];
 
     if (
       session?.user?.permissions?.some((permission) =>
         authorizedPermissions.includes(permission)
-      )
+      ) ||
+      authorizedRoles.includes(session?.user?.role)
     ) {
       setIsAuthorised(true);
     } else {
       setIsAuthorised(false);
     }
 
-    if (session?.user?.roles?.some((role) => authorizedRoles.includes(role))) {
+    if (session?.user?.roles?.some((role) => authorizedRoles.includes(role)) || authorizedRoles.includes(session?.user?.role)) {
       setIsHeadTeacher(true);
-      console.log('isHeadTeacher running the true statement', )
     } else {
       setIsHeadTeacher(false);
-            console.log("isHeadTeacher running the false statement");
 
     }
-  }, [session]);
+
+    if (
+      session?.user?.roles?.some((role) => authorizedRoles2.includes(role)) ||
+      authorizedRoles2.includes(session?.user?.role)
+    ) {
+      setIsTeacher(true);
+    } else {
+      setIsTeacher(false);
+    }
+  }, [session, status]);
 
   useEffect(() => {
     fetchallData();
@@ -315,7 +324,7 @@ const ClassRemarksTable = ({ onClose, onSave, userRole, class_id }) => {
                             )
                           }
                           className="w-full border rounded px-2 py-1 min-h-[80px] min-w-[170px] resize-vertical"
-                          readOnly={!isHeadTeacher}
+                          readOnly={isTeacher}
                         ></textarea>
                       </td>
                     </tr>
